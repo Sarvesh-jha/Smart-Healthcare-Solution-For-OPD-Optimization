@@ -9,7 +9,6 @@ import {
   ClipboardList
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { AIChatbot } from "../components/chatbot/AIChatbot";
 import { Sidebar } from "../components/layout/Sidebar";
 import { Header } from "../components/layout/Header";
 import { DoctorSearchLogo } from "../components/icons/DoctorSearchLogo";
@@ -34,6 +33,10 @@ export function PatientDashboardLayout() {
   const { logout } = useAuth();
   const location = useLocation();
   const isConsultationRoute = location.pathname.includes("/consultation/");
+  const isCareGuideRoute =
+    location.pathname.includes("/ai-doctor") ||
+    location.pathname.includes("/care-guide") ||
+    location.pathname.includes("/ai-symptom-checker");
 
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to logout?")) {
@@ -61,12 +64,16 @@ export function PatientDashboardLayout() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header userRole="patient" />
 
-        <main className="flex-1 overflow-y-auto p-8">
+        <main
+          className={
+            isCareGuideRoute
+              ? "flex-1 overflow-hidden p-4 lg:p-6 flex flex-col min-h-0"
+              : "flex-1 overflow-y-auto px-6 py-6 lg:px-8"
+          }
+        >
           <Outlet />
         </main>
       </div>
-
-      <AIChatbot />
     </div>
   );
 }

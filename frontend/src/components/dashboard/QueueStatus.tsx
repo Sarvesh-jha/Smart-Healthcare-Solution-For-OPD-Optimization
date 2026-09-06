@@ -1,7 +1,8 @@
-import { Activity, CalendarClock, CheckCircle2, Clock3, Hash, RefreshCw, Route, Users } from "lucide-react";
+import { Activity, CalendarClock, CheckCircle2, Clock3, Hash, RefreshCw, Route, Users, Stethoscope } from "lucide-react";
 import { useNavigate } from "react-router";
 import { Button } from "../common/Button";
 import { Card } from "../common/Card";
+import { Badge } from "../common/Badge";
 import { useQueue } from "../../hooks/useQueue";
 import { LoadingSpinner } from "../common/LoadingSpinner";
 
@@ -15,42 +16,41 @@ export function QueueStatus() {
 
   if (error) {
     return (
-      <Card className="rounded-[1.8rem] border border-red-200 bg-red-50 p-6 shadow-sm">
-        <p className="text-sm font-medium text-red-700">{error}</p>
+      <Card className="rounded-xl border border-rose-200 bg-rose-50/60 p-5 shadow-xs">
+        <p className="text-sm font-medium text-rose-700">{error}</p>
       </Card>
     );
   }
 
   if (!queue?.patientToken) {
     return (
-      <Card className="rounded-[1.8rem] border-0 bg-white p-6 shadow-md dark:bg-slate-950">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-600">Queue Status</p>
-            <h3 className="mt-2 text-xl font-semibold text-gray-900 dark:text-slate-50">No consultant queue booked yet</h3>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-gray-500 dark:text-slate-400">
-              Once you book an in-person consultant appointment, your queue position and estimated waiting time will appear here automatically.
+      <Card className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs dark:bg-slate-950 dark:border-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-[11px]">OPD Queue</Badge>
+              <span className="text-xs text-slate-400">• Standby</span>
+            </div>
+            <h3 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">No Active OPD Queue</h3>
+            <p className="max-w-xl text-sm text-slate-500 dark:text-slate-400">
+              When you book an in-person consultation, live queue tracking and real-time wait estimations will update here.
             </p>
           </div>
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-100 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300">
-            <Users className="h-6 w-6" />
+          <div className="flex flex-wrap gap-2.5 sm:self-center">
+            <Button
+              onClick={() => navigate("/dashboard/book-appointment")}
+              className="h-9 px-4 text-xs font-medium"
+            >
+              Book Appointment
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/dashboard/doctor-directory")}
+              className="h-9 px-4 text-xs font-medium"
+            >
+              Find Doctors
+            </Button>
           </div>
-        </div>
-
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Button
-            onClick={() => navigate("/dashboard/book-appointment")}
-            className="rounded-2xl bg-gradient-to-r from-cyan-600 to-teal-500 px-5 text-white hover:from-cyan-700 hover:to-teal-600"
-          >
-            Book Consultant Visit
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => navigate("/dashboard/doctor-directory")}
-            className="rounded-2xl border-gray-200 px-5"
-          >
-            Browse Doctors
-          </Button>
         </div>
       </Card>
     );
@@ -58,129 +58,133 @@ export function QueueStatus() {
 
   const patientsAhead = queue.patientsAhead ?? 0;
   const queueProgress = Math.min(100, ((queue.patientToken - patientsAhead) / Math.max(queue.patientToken, 1)) * 100);
-  const statusHeadline =
-    queue.patientStatus === "serving"
-      ? "It is your turn now"
-      : queue.isToday
-        ? `${patientsAhead} patient${patientsAhead === 1 ? "" : "s"} ahead of you`
-        : `Position ${queue.patientToken} reserved for ${queue.queueDateLabel}`;
+  const isServingNow = queue.patientStatus === "serving";
 
   return (
-    <Card className="overflow-hidden rounded-[1.9rem] border-0 bg-white p-0 shadow-lg dark:bg-slate-950">
-      <div className="bg-[linear-gradient(135deg,_#0f172a_0%,_#155e75_45%,_#0f766e_100%)] px-6 py-5 text-white">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">Queue Status</p>
-            <h3 className="mt-2 text-2xl font-semibold">{statusHeadline}</h3>
-            <p className="mt-2 text-sm text-cyan-50/80">
-              {queue.doctorName || "Consultant appointment"} • {queue.appointmentReason || "Consultation"} • {queue.appointmentTime || "Scheduled slot"}
-            </p>
-          </div>
+    <Card className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-xs dark:bg-slate-950 dark:border-slate-800">
+      {/* Header bar with live pulse */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/50 px-6 py-3.5 dark:border-slate-800/80 dark:bg-slate-900/30">
+        <div className="flex items-center gap-2.5">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+          </span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">Live OPD Queue</span>
+          <span className="text-xs text-slate-300 dark:text-slate-700">|</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">{queue.queueDateLabel}</span>
+        </div>
+        <div className="flex items-center gap-2">
           <Button
             variant="ghost"
+            size="sm"
             onClick={() => refresh()}
-            className="rounded-2xl border border-white/15 bg-white/10 px-4 text-white hover:bg-white/15 hover:text-white"
+            className="h-8 gap-1.5 px-2.5 text-xs text-slate-600 hover:text-slate-900 dark:text-slate-400"
           >
-            <RefreshCw className="h-4 w-4" />
-            Refresh
+            <RefreshCw className="h-3.5 w-3.5" />
+            <span>Sync</span>
           </Button>
         </div>
       </div>
 
-      <div className="p-6">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {[
-            {
-              label: "Your Position",
-              value: `#${queue.patientToken}`,
-              hint: queue.queueDateLabel,
-              icon: Hash,
-              accent: "bg-cyan-100 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300",
-            },
-            {
-              label: "Patients Ahead",
-              value: String(patientsAhead),
-              hint: queue.isToday ? "Live queue" : "Before your slot begins",
-              icon: Users,
-              accent: "bg-teal-100 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300",
-            },
-            {
-              label: "Estimated Wait",
-              value: queue.estimatedWaitTime,
-              hint: queue.isToday ? "Based on live movement" : "Expected once clinic opens",
-              icon: Clock3,
-              accent: "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300",
-            },
-            {
-              label: "Current Queue",
-              value: queue.isToday && queue.currentServing ? `#${queue.currentServing}` : "Opening soon",
-              hint: queue.isToday ? "Now serving" : queue.appointmentTime || "Scheduled slot",
-              icon: Activity,
-              accent: "bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300",
-            },
-          ].map((item) => {
-            const Icon = item.icon;
-            return (
-              <div key={item.label} className="rounded-[1.5rem] border border-gray-100 bg-gray-50 p-5 dark:border-slate-800 dark:bg-slate-900">
-                <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${item.accent}`}>
-                  <Icon className="h-5 w-5" />
-                </div>
-                <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 dark:text-slate-400">{item.label}</p>
-                <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-slate-50">{item.value}</p>
-                <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{item.hint}</p>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-6 rounded-[1.6rem] border border-cyan-100 bg-cyan-50 p-5 dark:border-cyan-950/60 dark:bg-cyan-950/20">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="p-6 space-y-6">
+        {/* Prominent Dual Token Comparison */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Currently Serving Token */}
+          <div className="flex items-center justify-between p-5 rounded-xl border border-slate-200/70 bg-slate-50/50 dark:border-slate-800 dark:bg-slate-900/50">
             <div>
-              <p className="text-sm font-semibold text-cyan-900 dark:text-cyan-200">Queue progress</p>
-              <p className="mt-1 text-sm text-cyan-700 dark:text-cyan-300">
-                {queue.isToday
-                  ? "Live progress updates reflect the active consultation queue."
-                  : "Your place is already reserved. Live movement starts on the day of your visit."}
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Currently Serving</p>
+              <p className="mt-1 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                {queue.isToday && queue.currentServing ? `#${queue.currentServing}` : "Starting Soon"}
               </p>
+              <div className="mt-2">
+                <Badge variant={queue.currentServing ? "success" : "secondary"}>
+                  {queue.currentServing ? "Active in Consultation" : "Queue Standby"}
+                </Badge>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-sm font-medium text-cyan-900 dark:text-cyan-200">
-              <CalendarClock className="h-4 w-4" />
-              {queue.queueDateLabel} • {queue.appointmentTime}
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-400">
+              <Activity className="h-6 w-6" />
             </div>
           </div>
 
-          <div className="mt-4">
-            <div className="h-3 overflow-hidden rounded-full bg-white/80 dark:bg-slate-900">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-cyan-600 to-teal-500 transition-all duration-500"
-                style={{ width: `${queueProgress}%` }}
-              />
+          {/* Patient's Token */}
+          <div className={`flex items-center justify-between p-5 rounded-xl border transition-all ${
+            isServingNow 
+              ? "border-emerald-300 bg-emerald-50/40 dark:border-emerald-800/80 dark:bg-emerald-950/20" 
+              : "border-teal-200/80 bg-teal-50/30 dark:border-teal-900/60 dark:bg-teal-950/20"
+          }`}>
+            <div>
+              <p className="text-xs font-medium text-teal-700 dark:text-teal-400">Your Assigned Token</p>
+              <p className="mt-1 text-3xl font-bold tracking-tight text-teal-950 dark:text-teal-50">
+                #{queue.patientToken}
+              </p>
+              <div className="mt-2">
+                <Badge variant={isServingNow ? "success" : "warning"}>
+                  {isServingNow ? "Your Turn Now!" : `${patientsAhead} patient${patientsAhead === 1 ? "" : "s"} ahead`}
+                </Badge>
+              </div>
             </div>
-            <div className="mt-2 flex justify-between text-xs font-medium text-cyan-800 dark:text-cyan-300">
-              <span>Queue opens</span>
-              <span>Your slot #{queue.patientToken}</span>
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-600 text-white shadow-xs">
+              <Hash className="h-6 w-6" />
             </div>
           </div>
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Button
-            onClick={() => navigate("/dashboard/live-queue")}
-            className="rounded-2xl bg-gradient-to-r from-cyan-600 to-teal-500 px-5 text-white hover:from-cyan-700 hover:to-teal-600"
-          >
-            <Route className="h-4 w-4" />
-            Open Full Queue
-          </Button>
-          {queue.patientStatus === "serving" && (
+        {/* Minimalist Wait Time Progress Indicator */}
+        <div className="rounded-xl border border-slate-200/70 bg-white p-4.5 dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center justify-between text-xs font-medium text-slate-600 dark:text-slate-300 mb-2.5">
+            <span className="flex items-center gap-1.5">
+              <Clock3 className="h-3.5 w-3.5 text-slate-400" />
+              Est. Waiting Time: <span className="font-semibold text-slate-900 dark:text-slate-100">{queue.estimatedWaitTime}</span>
+            </span>
+            <span className="text-slate-400">{Math.round(queueProgress)}% Completed</span>
+          </div>
+
+          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+            <div
+              className="h-full rounded-full bg-teal-600 transition-all duration-500 ease-out"
+              style={{ width: `${Math.max(5, queueProgress)}%` }}
+            />
+          </div>
+
+          <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Clinic Opening</span>
+            <span>Slot: {queue.appointmentTime || "Scheduled"}</span>
+            <span>Token #{queue.patientToken}</span>
+          </div>
+        </div>
+
+        {/* Doctor and Action Footer */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              <Stethoscope className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{queue.doctorName || "Consultant"}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{queue.appointmentReason || "General Visit"}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5">
             <Button
-              variant="outline"
-              onClick={() => navigate("/dashboard/book-appointment")}
-              className="rounded-2xl border-green-200 bg-green-50 px-5 text-green-700 hover:bg-green-100"
+              onClick={() => navigate("/dashboard/live-queue")}
+              className="h-9 px-4 text-xs font-medium gap-1.5"
             >
-              <CheckCircle2 className="h-4 w-4" />
-              Consultation Ready
+              <Route className="h-3.5 w-3.5" />
+              Full Queue View
             </Button>
-          )}
+            {isServingNow && (
+              <Button
+                variant="outline"
+                onClick={() => navigate("/dashboard/book-appointment")}
+                className="h-9 border-emerald-300 bg-emerald-50/60 text-emerald-700 hover:bg-emerald-100 text-xs font-medium"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                Proceed to Doctor
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </Card>

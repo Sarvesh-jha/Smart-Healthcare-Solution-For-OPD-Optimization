@@ -92,20 +92,23 @@ router.post("/alert", authRequired, requireRole("patient"), async (req, res) => 
       address: req.user.patientProfile?.address || "",
     });
     const alertId = `EMG-${Date.now().toString().slice(-6)}`;
-    const admins = await User.find({ role: "admin", status: "active" }).select("_id");
+    const staffRecipients = await User.find({ role: { $in: ["admin", "doctor"] }, status: "active" }).select("_id");
 
-    await Notification.insertMany([
+    const locSnippet = latitude && longitude ? ` (Coordinates: ${latitude.toFixed(4)}, ${longitude.toFixed(4)})` : "";
+    const notifications = [
       {
         recipient: req.user._id,
         type: "emergency",
         message: `Emergency alert ${alertId} sent to ${hospital.name}. Ambulance response ETA: ${hospital.etaMinutes}-${hospital.etaMinutes + 4} mins.`,
       },
-      ...admins.map((admin) => ({
-        recipient: admin._id,
+      ...staffRecipients.map((staff) => ({
+        recipient: staff._id,
         type: "emergency",
-        message: `Emergency alert ${alertId} raised by ${req.user.name}. Dispatch center: ${hospital.name}.`,
+        message: `🚨 Emergency SOS [${alertId}] raised by ${req.user.name}${locSnippet}. Dispatch center: ${hospital.name}.`,
       })),
-    ]);
+    ];
+
+    await Notification.insertMany(notifications);
 
     return res.status(201).json({
       success: true,

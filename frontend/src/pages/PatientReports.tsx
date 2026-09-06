@@ -69,12 +69,6 @@ const vitalTrends = [
 export function PatientReports() {
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-semibold text-gray-900">Medical Reports</h1>
-        <p className="text-sm text-gray-500 mt-1">View and download your medical reports</p>
-      </div>
-
       {/* Vital Trends */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {vitalTrends.map((vital, index) => (

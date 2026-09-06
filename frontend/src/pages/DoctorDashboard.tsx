@@ -1,6 +1,7 @@
-import { Calendar, Clock, Video, Users, Activity, CheckCircle, FileText, Timer, BarChart3 } from "lucide-react";
+import { Calendar, Clock, Video, Users, Activity, CheckCircle, FileText, Timer, BarChart3, ChevronRight, Stethoscope, ArrowRight } from "lucide-react";
 import { Card } from "../components/common/Card";
 import { Button } from "../components/common/Button";
+import { Badge } from "../components/common/Badge";
 import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { useAppointments } from "../hooks/useAppointments";
@@ -27,263 +28,290 @@ export function DoctorDashboard() {
 
   return (
     <div className="space-y-6 pb-8">
-      {/* Greeting Section */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-        <div className="flex items-center justify-between">
+      {/* Clinician Header Section */}
+      <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-xs dark:bg-slate-950 dark:border-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900 mb-1">Good Morning, {user?.name || "Dr. Aarav Mehta"} 👋</h1>
-            <p className="text-gray-600">You have {stats?.todaysAppointments || 0} appointments scheduled for today</p>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">On-Duty Clinician</span>
+              <span className="text-xs text-slate-300 dark:text-slate-700">•</span>
+              <span className="text-xs text-slate-500">OPD Consultation Wing</span>
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+              Welcome, {user?.name || "Dr. Aarav Mehta"}
+            </h1>
+            <p className="text-xs text-slate-500 mt-1">
+              You have <strong className="text-slate-900 dark:text-slate-100 font-semibold">{stats?.todaysAppointments || appointments.length} appointments</strong> scheduled for today's roster.
+            </p>
           </div>
-          <div className="px-5 py-3 bg-gray-50 rounded-xl border border-gray-200">
-            <p className="text-xs text-gray-600 mb-0.5">Current Time</p>
-            <p className="text-lg font-semibold text-gray-900">10:45 AM</p>
+
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => navigate("/doctor/write-prescription")}
+              className="h-9 px-4 text-xs font-medium gap-1.5"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Write Prescription
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Main Grid */}
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Left Column - Appointments & Queue */}
+        {/* Left Column - Appointments & Queue Stream */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Today's Appointments */}
-          <Card className="p-6 border-0 shadow-md bg-white">
-            <div className="flex items-center justify-between mb-6">
+          {/* Today's Queue Stream */}
+          <Card className="p-6 bg-white border border-slate-200/80 shadow-xs dark:bg-slate-950 dark:border-slate-800">
+            <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-cyan-100 rounded-xl flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-cyan-600" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-50 text-teal-700 border border-teal-200/60 dark:bg-teal-950/40 dark:text-teal-300">
+                  <Calendar className="h-4.5 w-4.5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Today's Appointments</h3>
-                  <p className="text-sm text-gray-500">{appointments.length} scheduled</p>
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50">Patient Queue Stream</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{appointments.length} patients scheduled today</p>
                 </div>
               </div>
+              <Badge variant="secondary" className="text-xs">Live Schedule</Badge>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {appointmentsLoading ? (
                 Array(3).fill(0).map((_, i) => (
-                  <div key={i} className="h-20 bg-gray-50 animate-pulse rounded-xl" />
+                  <div key={i} className="h-16 bg-slate-100 animate-pulse rounded-lg dark:bg-slate-900" />
                 ))
-              ) : (
-                appointments.map((appointment) => (
-                  <div 
-                    key={appointment.id} 
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors"
-                  >
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="w-11 h-11 bg-gradient-to-br from-cyan-600 to-teal-500 rounded-xl flex items-center justify-center text-white font-semibold text-sm shadow-sm flex-shrink-0">
-                        {appointment.patient.split(' ').map((n: string) => n[0]).join('')}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 text-sm truncate">{appointment.patient}</p>
-                        <p className="text-xs text-gray-600 truncate">{appointment.reason}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-4 flex-shrink-0 ml-4">
-                      <div className="text-right">
-                        <div className="flex items-center gap-2 text-sm font-medium text-gray-900 mb-0.5">
-                          <Clock className="w-4 h-4 text-gray-500" />
-                          {appointment.time}
+              ) : appointments.length ? (
+                appointments.map((appointment) => {
+                  const isCompleted = appointment.status === "completed";
+                  const isOngoing = appointment.status === "ongoing";
+
+                  return (
+                    <div 
+                      key={appointment.id} 
+                      className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border transition-all ${
+                        isOngoing 
+                          ? "border-teal-300 bg-teal-50/30 dark:border-teal-800 dark:bg-teal-950/20 shadow-xs" 
+                          : "border-slate-200/70 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 font-semibold text-xs flex items-center justify-center border border-slate-200/60 shrink-0 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">
+                          {appointment.patient.split(' ').map((n: string) => n[0]).join('')}
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                          {appointment.mode === "Video" ? (
-                            <><Video className="w-3.5 h-3.5" /> Video Call</>
-                          ) : (
-                            <><Users className="w-3.5 h-3.5" /> In-Person</>
-                          )}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-slate-900 text-sm truncate dark:text-slate-100">{appointment.patient}</p>
+                            <Badge
+                              variant={
+                                isCompleted
+                                  ? "success"
+                                  : isOngoing
+                                  ? "default"
+                                  : "warning"
+                              }
+                            >
+                              {appointment.status}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-slate-500 truncate mt-0.5">{appointment.reason || "General Consultation"}</p>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-2">
-                        <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap ${
-                          appointment.status === 'completed' 
-                            ? 'bg-green-100 text-green-700' 
-                            : appointment.status === 'ongoing'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-gray-200 text-gray-700'
-                        }`}>
-                          {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                        </span>
+                      <div className="flex items-center justify-between sm:justify-end gap-4 mt-3 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
+                        <div className="text-right">
+                          <div className="flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
+                            <Clock className="w-3.5 h-3.5 text-slate-400" />
+                            {appointment.time}
+                          </div>
+                          <div className="text-[11px] text-slate-400 mt-0.5">
+                            {appointment.mode === "Video" ? "Video Visit" : "In-Person OPD"}
+                          </div>
+                        </div>
                         
-                        {appointment.mode === 'Video' && appointment.status !== 'completed' && (
-                          <Button
-                            size="sm"
-                            onClick={() => navigate(`/doctor/consultation/${appointment.id}`)}
-                            className="bg-gradient-to-r from-cyan-600 to-teal-500 hover:from-cyan-700 hover:to-teal-600 text-white h-9 px-4 shadow-sm"
-                          >
-                            {appointment.status === "ongoing" ? "Join" : "Start"}
-                          </Button>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {appointment.mode === 'Video' && !isCompleted && (
+                            <Button
+                              size="sm"
+                              onClick={() => navigate(`/doctor/consultation/${appointment.id}`)}
+                              className="h-8 px-3 text-xs gap-1 font-medium"
+                            >
+                              <Video className="w-3 h-3" />
+                              {isOngoing ? "Resume" : "Call Next"}
+                            </Button>
+                          )}
 
-                        {appointment.status === 'completed' && (
-                          <Button variant="outline" size="sm" className="border-gray-300 h-9 px-4">
-                            View
+                          {!isCompleted && appointment.mode !== 'Video' && (
+                            <Button
+                              size="sm"
+                              onClick={handleAdvanceQueue}
+                              className="h-8 px-3 text-xs font-medium"
+                            >
+                              Call Next
+                            </Button>
+                          )}
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 text-xs text-slate-500 hover:text-slate-900"
+                            onClick={() => navigate(`/doctor/patient-history`)}
+                          >
+                            History
                           </Button>
-                        )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
+              ) : (
+                <p className="py-8 text-center text-xs text-slate-400">No scheduled patients in the queue.</p>
               )}
             </div>
           </Card>
 
-          {/* Live Queue */}
-          <Card className="p-6 border-0 shadow-md bg-white">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-teal-100 rounded-xl flex items-center justify-center">
-                <Activity className="w-5 h-5 text-teal-600" />
+          {/* Live Queue OPD Control */}
+          <Card className="p-6 bg-white border border-slate-200/80 shadow-xs dark:bg-slate-950 dark:border-slate-800">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-300">
+                  <Activity className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50">Active OPD Queue Control</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Manage turn advancements and room flow</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Live Queue</h3>
-                <p className="text-sm text-gray-500">Patient queue management</p>
-              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => refreshQueue()}
+                className="h-8 text-xs text-slate-500"
+              >
+                Sync
+              </Button>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-5">
-              {/* Current Serving */}
-              <div className="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-xl p-5 border border-cyan-200">
-                <p className="text-sm text-gray-700 font-medium mb-4">Currently Serving</p>
-                {queueLoading ? (
-                  <div className="h-32 bg-white/50 animate-pulse rounded-xl" />
-                ) : (
-                  <>
-                    <div className="flex items-center gap-4 mb-5">
-                      <div className="w-16 h-16 bg-gradient-to-br from-cyan-600 to-teal-500 rounded-xl flex items-center justify-center text-white shadow-lg">
-                        <span className="text-2xl font-bold">{queue?.currentServing}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 truncate">{queue?.currentPatient?.name || "Waiting to start"}</p>
-                        <p className="text-xs text-gray-600 truncate">{queue?.currentPatient?.reason || "No patient is being served yet."}</p>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={handleAdvanceQueue}
-                      className="w-full bg-gradient-to-r from-cyan-600 to-teal-500 hover:from-cyan-700 hover:to-teal-600 text-white h-11 shadow-sm font-medium"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Mark as Completed
-                    </Button>
-                  </>
-                )}
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Current Serving Tile */}
+              <div className="rounded-xl border border-teal-200/80 bg-teal-50/30 p-5 dark:border-teal-900/50 dark:bg-teal-950/20">
+                <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-300 mb-3">Currently in Consultation</p>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-teal-600 text-white font-bold text-2xl shadow-xs">
+                    {queue?.currentServing || "—"}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-slate-900 dark:text-slate-100 text-base truncate">
+                      {queue?.currentPatient?.name || "Queue Idle / Next Ready"}
+                    </p>
+                    <p className="text-xs text-slate-500 truncate mt-0.5">
+                      {queue?.currentPatient?.reason || "Waiting to advance"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleAdvanceQueue}
+                    className="flex-1 h-9 text-xs font-medium gap-1.5"
+                  >
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    Mark Consultation Done
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleAdvanceQueue}
+                    className="h-9 px-3 text-xs text-slate-600 hover:text-slate-900"
+                  >
+                    Skip
+                  </Button>
+                </div>
               </div>
 
-              {/* Queue Progress */}
-              <div className="bg-white rounded-xl p-5 border border-gray-200 flex flex-col justify-between">
+              {/* Queue Progress Tile */}
+              <div className="rounded-xl border border-slate-200/70 bg-slate-50/50 p-5 flex flex-col justify-between dark:border-slate-800 dark:bg-slate-900/50">
                 <div>
-                  <p className="text-sm text-gray-700 font-medium mb-4">Queue Progress</p>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600">Completed</span>
-                    <span className="text-sm font-semibold text-gray-900">{queue?.completed || 0} / {queue?.totalToday || 0}</span>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">Roster Progress</p>
+                  <div className="flex items-center justify-between text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    <span>Completed Patients</span>
+                    <span className="font-semibold text-slate-900 dark:text-slate-50">{queue?.completed || 0} / {queue?.totalToday || 0}</span>
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                  <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden dark:bg-slate-800">
                     <div 
-                      className="bg-gradient-to-r from-cyan-600 to-teal-500 h-full rounded-full transition-all duration-500" 
-                      style={{ width: `${((queue?.completed || 0) / (queue?.totalToday || 1)) * 100}%` }}
+                      className="bg-teal-600 h-full rounded-full transition-all duration-500" 
+                      style={{ width: `${Math.max(5, ((queue?.completed || 0) / (queue?.totalToday || 1)) * 100)}%` }}
                     />
                   </div>
                 </div>
-                
-                <div className="pt-4 border-t border-gray-100 mt-4">
-                  <p className="text-xs text-gray-500">Estimated wait for next: <span className="font-semibold text-gray-700">{queue?.estimatedWaitTime}</span></p>
+
+                <div className="pt-3 border-t border-slate-200/60 dark:border-slate-800 mt-4 text-xs text-slate-500">
+                  Estimated next wait: <strong className="text-slate-800 dark:text-slate-200">{queue?.estimatedWaitTime || "15 mins"}</strong>
                 </div>
               </div>
             </div>
           </Card>
         </div>
 
-        {/* Right Column - Actions & Stats */}
+        {/* Right Column - Stats & Shortcuts */}
         <div className="space-y-6">
-          {/* Quick Action - Write Prescription */}
-          <Card className="p-6 border-0 shadow-lg bg-gradient-to-br from-cyan-600 to-teal-500 text-white">
-            <div className="space-y-5">
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                <FileText className="w-6 h-6" />
+          {/* Clinical Prescription Quick Launch */}
+          <Card className="p-5 bg-white border border-slate-200/80 shadow-xs dark:bg-slate-950 dark:border-slate-800">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-50 text-teal-700 border border-teal-200/60 dark:bg-teal-950/40 dark:text-teal-300">
+                <FileText className="h-4.5 w-4.5" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-1.5">Write Prescription</h3>
-                <p className="text-sm text-cyan-50">Create and manage patient prescriptions</p>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Digital Prescription</h3>
+                <p className="text-xs text-slate-500">Generate e-prescriptions</p>
               </div>
-              <Button 
-                className="w-full bg-white text-cyan-700 hover:bg-cyan-50 font-semibold h-11 shadow-md"
-                onClick={() => navigate("/doctor/write-prescription")}
-              >
-                Create New
-              </Button>
             </div>
-          </Card>
-
-          {/* Today's Statistics */}
-          <Card className="p-6 border-0 shadow-md bg-white">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 bg-teal-100 rounded-xl flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-teal-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">Today's Statistics</h3>
-            </div>
-
-            <div className="space-y-3">
-              {statsLoading ? (
-                Array(4).fill(0).map((_, i) => (
-                  <div key={i} className="h-20 bg-gray-50 animate-pulse rounded-xl" />
-                ))
-              ) : (
-                <>
-                  <StatCard 
-                    title="Today's Appointments" 
-                    value={stats?.todaysAppointments || 0} 
-                    icon={Calendar} 
-                    iconColor="text-white" 
-                    bgColor="bg-cyan-500" 
-                  />
-                  <StatCard 
-                    title="Completed Today" 
-                    value={stats?.completedConsultations || 0} 
-                    icon={CheckCircle} 
-                    iconColor="text-white" 
-                    bgColor="bg-green-500" 
-                  />
-                  <StatCard 
-                    title="Waiting Patients" 
-                    value={stats?.waitingPatients || 0} 
-                    icon={Users} 
-                    iconColor="text-white" 
-                    bgColor="bg-orange-500" 
-                  />
-                  <StatCard 
-                    title="Avg. Consultation" 
-                    value={stats?.avgConsultationTime || 0} 
-                    unit="min"
-                    icon={Timer} 
-                    iconColor="text-white" 
-                    bgColor="bg-blue-500" 
-                  />
-                </>
-              )}
-            </div>
-          </Card>
-
-          {/* Patient History Quick Access */}
-          <Card className="p-6 border-0 shadow-sm bg-white">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Users className="w-5 h-5 text-blue-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">Patient History</h3>
-            </div>
-            <p className="text-sm text-gray-600 mb-4 leading-relaxed">Access patient records and consultation history</p>
-            <Button 
-              variant="outline" 
-              className="w-full border-gray-300 h-10"
-              onClick={() => navigate("/doctor/patient-history")}
+            <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+              Create instant compliant prescriptions with automated medicine dosage formatting and lab tests.
+            </p>
+            <Button
+              className="w-full h-9 text-xs font-medium"
+              onClick={() => navigate("/doctor/write-prescription")}
             >
-              View All Records
+              New Prescription
             </Button>
           </Card>
+
+          {/* Today's KPI Metrics */}
+          <div className="space-y-3">
+            {statsLoading ? (
+              Array(3).fill(0).map((_, i) => (
+                <div key={i} className="h-20 bg-slate-100 animate-pulse rounded-xl dark:bg-slate-900" />
+              ))
+            ) : (
+              <>
+                <StatCard 
+                  title="Completed Consultations" 
+                  value={stats?.completedConsultations || 0} 
+                  icon={CheckCircle} 
+                  trend="Target on track"
+                />
+                <StatCard 
+                  title="Waiting in OPD" 
+                  value={stats?.waitingPatients || 0} 
+                  icon={Users} 
+                  trend="Live queue"
+                />
+                <StatCard 
+                  title="Avg. Consultation Time" 
+                  value={stats?.avgConsultationTime || 12} 
+                  unit="min"
+                  icon={Timer} 
+                  trend="Fast throughput"
+                />
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 }
-

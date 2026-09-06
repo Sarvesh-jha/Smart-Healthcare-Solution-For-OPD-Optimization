@@ -52,6 +52,7 @@ export const router = createBrowserRouter([
           { path: "book-appointment", Component: AppointmentBooking },
           { path: "doctor-directory", Component: DoctorDirectory },
           { path: "ai-doctor", Component: AiSymptomChecker },
+          { path: "care-guide", Component: AiSymptomChecker },
           { path: "ai-symptom-checker", Component: AiSymptomChecker },
           { path: "prescriptions", Component: PrescriptionInsight },
           { path: "reports", Component: PatientReports },

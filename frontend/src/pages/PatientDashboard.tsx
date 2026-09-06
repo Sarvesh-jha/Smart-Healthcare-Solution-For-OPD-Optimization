@@ -1,7 +1,8 @@
-import { Activity, Calendar, ChevronRight, FileText, HeartPulse, ShieldAlert, Video } from "lucide-react";
+import { Activity, Calendar, FileText, Video } from "lucide-react";
 import { useNavigate } from "react-router";
 import { Card } from "../components/common/Card";
 import { Button } from "../components/common/Button";
+import { Badge } from "../components/common/Badge";
 import { QueueStatus } from "../components/dashboard/QueueStatus";
 import { GreetingSection } from "../components/dashboard/GreetingSection";
 import { RecentActivityCard } from "../components/dashboard/RecentActivityCard";
@@ -11,26 +12,11 @@ import { useAuth } from "../context/AuthContext";
 import { CareAssistantLogo } from "../components/icons/CareAssistantLogo";
 import { DoctorSearchLogo } from "../components/icons/DoctorSearchLogo";
 
-const careHighlights = [
-  {
-    title: "Keep reports ready for every visit",
-    description: "Uploading lab reports and prescriptions before the appointment helps doctors review your case faster.",
-  },
-  {
-    title: "Video for follow-ups, clinic for exams",
-    description: "Use video consultations for routine follow-ups and in-person visits when a physical examination matters.",
-  },
-  {
-    title: "Watch the queue before you travel",
-    description: "Your dashboard now updates queue position and waiting time once a consultant appointment is booked.",
-  },
-];
-
 const quickActions = [
-  { name: "Book Appointment", icon: Calendar, path: "/dashboard/book-appointment", accent: "from-cyan-500 to-cyan-600" },
-  { name: "Find Doctors", icon: DoctorSearchLogo, path: "/dashboard/doctor-directory", accent: "from-teal-500 to-emerald-500" },
-  { name: "Reports", icon: FileText, path: "/dashboard/reports", accent: "from-blue-500 to-blue-600" },
-  { name: "Care Guide", icon: CareAssistantLogo, path: "/dashboard/ai-doctor", accent: "from-sky-500 to-cyan-500" },
+  { name: "Book Appointment", icon: Calendar, path: "/dashboard/book-appointment", tag: "OPD / Video" },
+  { name: "Find Doctors", icon: DoctorSearchLogo, path: "/dashboard/doctor-directory", tag: "Specialists" },
+  { name: "Medical Reports", icon: FileText, path: "/dashboard/reports", tag: "Prescriptions" },
+  { name: "Clinical AI Guide", icon: CareAssistantLogo, path: "/dashboard/ai-doctor", tag: "Care Assistant" },
 ];
 
 const getActivityIcon = (title: string) => {
@@ -40,9 +26,9 @@ const getActivityIcon = (title: string) => {
 };
 
 const getActivityColor = (title: string) => {
-  if (title.includes("Prescription")) return { color: "text-blue-500", bgColor: "bg-blue-100" };
-  if (title.includes("Appointment")) return { color: "text-cyan-500", bgColor: "bg-cyan-100" };
-  return { color: "text-teal-500", bgColor: "bg-teal-100" };
+  if (title.includes("Prescription")) return { color: "text-blue-600", bgColor: "bg-blue-50" };
+  if (title.includes("Appointment")) return { color: "text-teal-600", bgColor: "bg-teal-50" };
+  return { color: "text-emerald-600", bgColor: "bg-emerald-50" };
 };
 
 export function PatientDashboard() {
@@ -52,62 +38,65 @@ export function PatientDashboard() {
   const { stats, loading: statsLoading } = useDashboardStats("patient");
 
   return (
-    <div className="space-y-7 pb-8">
+    <div className="space-y-6 pb-10">
       <GreetingSection
-        name={user?.name?.split(" ")[0] || "Rohan"}
-        message="Track your queue, upcoming visits, and care guidance from one clear patient workspace."
+        name={user?.name?.split(" ")[0] || "Patient"}
+        message="Track your queue, upcoming visits, and care guidance from one unified patient workspace."
       />
 
-      <Card className="border-0 bg-white p-6 shadow-md dark:bg-slate-950">
-        <div className="mb-5 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-950/40">
-            <ShieldAlert className="h-5 w-5 text-blue-600 dark:text-blue-300" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-50">Patient Shortcuts</h3>
-            <p className="text-sm text-gray-500 dark:text-slate-400">Quick access to the most-used workflows.</p>
-          </div>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {quickActions.map((action) => {
-            const Icon = action.icon;
-            return (
-              <button
-                key={action.name}
-                type="button"
-                onClick={() => navigate(action.path)}
-                className="group rounded-[1.5rem] border border-gray-200 bg-gray-50 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-cyan-200 hover:bg-white dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-950"
-              >
-                <div className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br ${action.accent} text-white shadow-sm transition-transform group-hover:scale-105`}>
+      {/* Patient Shortcuts Grid */}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {quickActions.map((action) => {
+          const Icon = action.icon;
+          return (
+            <button
+              key={action.name}
+              type="button"
+              onClick={() => navigate(action.path)}
+              className="group flex flex-col justify-between p-5 text-left rounded-xl border border-slate-200/80 bg-white shadow-xs transition-all hover:border-teal-300 hover:shadow-sm dark:bg-slate-950 dark:border-slate-800 dark:hover:border-teal-800"
+            >
+              <div className="flex items-center justify-between w-full">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50 text-teal-700 border border-teal-200/60 dark:bg-teal-950/40 dark:text-teal-300">
                   <Icon className="h-5 w-5" />
                 </div>
-                <p className="mt-4 text-sm font-semibold text-gray-900 dark:text-slate-50">{action.name}</p>
-              </button>
-            );
-          })}
-        </div>
-      </Card>
+                <span className="rounded-md border border-slate-200/60 bg-slate-50 px-2.5 py-0.5 text-[11px] font-medium text-slate-500 transition-colors group-hover:border-teal-200 group-hover:bg-teal-50 group-hover:text-teal-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:group-hover:border-teal-800 dark:group-hover:bg-teal-950/50 dark:group-hover:text-teal-300">
+                  {action.tag}
+                </span>
+              </div>
+              <div className="mt-4">
+                <p className="text-sm font-semibold tracking-tight text-slate-900 transition-colors group-hover:text-teal-900 dark:text-slate-50 dark:group-hover:text-teal-200">
+                  {action.name}
+                </p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
 
+      {/* Hero Live OPD Queue Section */}
       <section>
         <QueueStatus />
       </section>
 
+      {/* Activity and Upcoming Appointments */}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <Card className="border-0 bg-white p-6 shadow-md dark:bg-slate-950">
+        {/* Recent Activity Card */}
+        <Card className="p-6 bg-white border border-slate-200/80 shadow-xs dark:bg-slate-950 dark:border-slate-800">
           <div className="mb-5 flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-100 dark:bg-teal-950/50">
-              <Activity className="h-5 w-5 text-teal-700 dark:text-teal-300" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              <Activity className="h-4.5 w-4.5" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-50">Recent Activity</h3>
-              <p className="text-sm text-gray-500 dark:text-slate-400">Appointments, follow-ups, and your latest care events.</p>
+              <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50">Recent Activity</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Consultations, follow-ups, and latest medical events</p>
             </div>
           </div>
 
           <div className="space-y-3">
             {statsLoading ? (
-              Array.from({ length: 3 }).map((_, index) => <div key={index} className="h-24 animate-pulse rounded-xl bg-gray-100 dark:bg-slate-900" />)
+              Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="h-20 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-900" />
+              ))
             ) : stats?.recentActivity?.length ? (
               stats.recentActivity.map((activity: any) => {
                 const styles = getActivityColor(activity.title);
@@ -124,121 +113,100 @@ export function PatientDashboard() {
                 );
               })
             ) : (
-              <div className="rounded-[1.5rem] border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-sm text-gray-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
-                Recent activity will appear here once you book appointments, use the queue, or review reports.
+              <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50/50 p-6 text-center text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+                Recent medical interactions and prescription updates will appear here.
               </div>
             )}
           </div>
         </Card>
 
-        <Card className="border-0 bg-white p-6 shadow-md dark:bg-slate-950">
+        {/* Upcoming Appointments Card */}
+        <Card className="p-6 bg-white border border-slate-200/80 shadow-xs dark:bg-slate-950 dark:border-slate-800">
           <div className="mb-5 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-100 dark:bg-cyan-950/50">
-                <Calendar className="h-5 w-5 text-cyan-700 dark:text-cyan-300" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-50 text-teal-700 border border-teal-200/60 dark:bg-teal-950/40 dark:text-teal-300">
+                <Calendar className="h-4.5 w-4.5" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-50">Upcoming Appointments</h3>
-                <p className="text-sm text-gray-500 dark:text-slate-400">See your next consultant sessions and join video visits.</p>
+                <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50">Upcoming Appointments</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Scheduled consultant appointments and video visits</p>
               </div>
             </div>
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700"
+              className="text-xs h-8"
               onClick={() => navigate("/dashboard/book-appointment")}
             >
               Book New
             </Button>
           </div>
 
-          <div className="space-y-3.5">
+          <div className="space-y-3">
             {appointmentsLoading ? (
-              Array.from({ length: 2 }).map((_, index) => <div key={index} className="h-24 animate-pulse rounded-xl bg-gray-50 dark:bg-slate-900" />)
+              Array.from({ length: 2 }).map((_, index) => (
+                <div key={index} className="h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-900" />
+              ))
             ) : appointments.length ? (
               appointments.map((appointment) => (
                 <div
                   key={appointment.id}
-                  className="rounded-[1.5rem] border border-gray-100 bg-gray-50 p-4 shadow-sm transition-all hover:border-cyan-200 hover:bg-cyan-50/40 dark:border-slate-800 dark:bg-slate-900"
+                  className="rounded-lg border border-slate-200/70 bg-white p-4 transition-colors hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <p className="text-base font-semibold text-gray-900 dark:text-slate-50">{appointment.doctor}</p>
-                      <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">{appointment.specialty}</p>
-                      <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
-                        {appointment.date} • {appointment.time} • {appointment.mode}
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">{appointment.doctor}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{appointment.specialty}</p>
+                      <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                        <span>{appointment.date}</span>
+                        <span>•</span>
+                        <span>{appointment.time}</span>
+                        <span>•</span>
+                        <span className="font-medium text-slate-700 dark:text-slate-300">{appointment.mode}</span>
                       </p>
                     </div>
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    <Badge
+                      variant={
                         appointment.status === "completed"
-                          ? "bg-green-100 text-green-700"
+                          ? "success"
                           : appointment.status === "ongoing"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-cyan-100 text-cyan-700"
-                      }`}
+                            ? "info"
+                            : "secondary"
+                      }
                     >
                       {appointment.status}
-                    </span>
+                    </Badge>
                   </div>
 
-                  <div className="mt-4 flex flex-wrap gap-3">
+                  <div className="mt-3.5 flex items-center gap-2">
                     {appointment.mode === "Video" ? (
                       <Button
+                        size="sm"
                         onClick={() => navigate(`/dashboard/consultation/${appointment.id}`)}
-                        className="rounded-2xl bg-gradient-to-r from-cyan-600 to-teal-500 px-4 text-white hover:from-cyan-700 hover:to-teal-600"
+                        className="h-8 text-xs gap-1.5"
                       >
-                        <Video className="h-4 w-4" />
-                        Join Video Call
+                        <Video className="h-3.5 w-3.5" />
+                        Join Call
                       </Button>
                     ) : (
                       <Button
                         variant="outline"
+                        size="sm"
                         onClick={() => navigate("/dashboard/live-queue")}
-                        className="rounded-2xl border-gray-200 px-4"
+                        className="h-8 text-xs"
                       >
-                        Track Queue
+                        Track Position
                       </Button>
                     )}
                   </div>
                 </div>
               ))
             ) : (
-              <p className="py-6 text-center text-gray-500 dark:text-slate-400">No upcoming appointments yet.</p>
+              <p className="py-8 text-center text-xs text-slate-400 dark:text-slate-500">No upcoming visits scheduled.</p>
             )}
           </div>
         </Card>
       </div>
-
-      <Card className="border-0 bg-white p-6 shadow-md dark:bg-slate-950">
-        <div className="mb-5 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-950/40">
-            <HeartPulse className="h-5 w-5 text-rose-600 dark:text-rose-300" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-50">Care Focus / Health Insights</h3>
-            <p className="text-sm text-gray-500 dark:text-slate-400">Simple, practical ways to make the most of each visit.</p>
-          </div>
-        </div>
-
-        <div className="grid gap-3 lg:grid-cols-3">
-          {careHighlights.map((highlight) => (
-            <div key={highlight.title} className="rounded-[1.5rem] border border-gray-200 bg-gray-50 px-4 py-4 transition-all duration-200 hover:border-cyan-200 hover:bg-cyan-50/70 dark:border-slate-800 dark:bg-slate-900">
-              <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{highlight.title}</p>
-              <p className="mt-1 text-sm leading-6 text-gray-500 dark:text-slate-400">{highlight.description}</p>
-            </div>
-          ))}
-        </div>
-
-        <Button
-          variant="ghost"
-          className="mt-4 w-full justify-between rounded-2xl border border-gray-200 px-4 py-5 text-gray-700 hover:bg-gray-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-900"
-          onClick={() => navigate("/dashboard/ai-doctor")}
-        >
-          Open Care Guide
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </Card>
     </div>
   );
 }

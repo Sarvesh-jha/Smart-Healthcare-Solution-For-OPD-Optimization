@@ -1,15 +1,19 @@
+import { useEffect, useState } from "react";
 import {
   Bell,
+  CheckCircle2,
   CreditCard,
   Globe,
+  HeartPulse,
+  KeyRound,
   Lock,
   Mail,
   MapPin,
-  Palette,
   Phone,
   Shield,
   User,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "../components/common/Button";
 import { Card } from "../components/common/Card";
 import { Input } from "../components/common/Input";
@@ -18,237 +22,478 @@ import { Switch } from "../components/common/Switch";
 import { Textarea } from "../components/common/Textarea";
 import { ProfileSettingsShell, type ProfileSettingsSection } from "../components/profile/ProfileSettingsShell";
 import { useAuth } from "../context/AuthContext";
+import { api } from "../services/ApiService";
 import { APP_NAME } from "../utils/brand";
-
-const notificationSettings = [
-  {
-    title: "Email Notifications",
-    description: "Receive appointment reminders and report updates by email.",
-    enabled: true,
-  },
-  {
-    title: "SMS Alerts",
-    description: "Get queue changes and care reminders by text message.",
-    enabled: true,
-  },
-  {
-    title: "Push Notifications",
-    description: `Allow browser notifications for live updates from ${APP_NAME}.`,
-    enabled: false,
-  },
-];
-
-const privacySettings = [
-  {
-    title: "Share Data With Doctors",
-    description: "Allow your care team to review your reports and visit history.",
-    enabled: true,
-  },
-  {
-    title: "Profile Visibility",
-    description: "Make your profile visible to providers before appointments.",
-    enabled: true,
-  },
-  {
-    title: "Research Consent",
-    description: "Contribute anonymized data to service quality improvements.",
-    enabled: false,
-  },
-];
 
 function SettingToggle({
   title,
   description,
-  enabled,
+  enabled = false,
+  onChange,
 }: {
   title: string;
   description: string;
   enabled?: boolean;
+  onChange?: (val: boolean) => void;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4">
+    <div className="flex items-start justify-between gap-4 rounded-2xl border border-slate-200/90 bg-slate-50/70 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/60">
       <div className="min-w-0">
-        <p className="text-sm font-medium text-gray-900">{title}</p>
-        <p className="mt-1 text-sm leading-6 text-gray-500">{description}</p>
+        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</p>
+        <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">{description}</p>
       </div>
-      <Switch defaultChecked={enabled} className="mt-1" />
+      <Switch checked={enabled} onCheckedChange={onChange} className="mt-1" />
     </div>
   );
 }
 
 export function PatientSettings() {
-  const { user } = useAuth();
-  const [firstName = "Rohan", lastName = "Verma"] = (user?.name || "Rohan Verma").split(" ");
+  const { user, updateUser } = useAuth();
+
+  // Profile Form State
+  const [initialSplitFirst = "", initialSplitLast = ""] = (user?.name || "").split(" ");
+  const [firstName, setFirstName] = useState(initialSplitFirst || "Rohan");
+  const [lastName, setLastName] = useState(initialSplitLast || "Verma");
+  const [email, setEmail] = useState(user?.email || "");
+  const [phone, setPhone] = useState(user?.phone || "+91 98765 42001");
+  const [address, setAddress] = useState(user?.address || "Indiranagar, Bengaluru, Karnataka");
+  const [age, setAge] = useState<string>("28");
+  const [gender, setGender] = useState<string>("Male");
+  const [bloodGroup, setBloodGroup] = useState<string>("O+");
+
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  // Security Form State
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+
+  // Preferences & Notifications State
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [smsAlerts, setSmsAlerts] = useState(true);
+  const [pushNotifications, setPushNotifications] = useState(false);
+  const [shareData, setShareData] = useState(true);
+  const [profileVisibility, setProfileVisibility] = useState(true);
+  const [twoFactorAuth, setTwoFactorAuth] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchProfile = async () => {
+      try {
+        setIsLoadingProfile(true);
+        const res = await api.get<{ success: boolean; user: any }>("/user/profile");
+        if (res?.user && isMounted) {
+          if (res.user.firstName) setFirstName(res.user.firstName);
+          if (res.user.lastName) setLastName(res.user.lastName);
+          if (res.user.email) setEmail(res.user.email);
+          if (res.user.phone) setPhone(res.user.phone);
+          if (res.user.address) setAddress(res.user.address);
+          if (res.user.age) setAge(String(res.user.age));
+          if (res.user.gender) setGender(res.user.gender);
+          if (res.user.bloodGroup) setBloodGroup(res.user.bloodGroup);
+        }
+      } catch (err) {
+        // Fallback to current session user info
+        console.warn("Could not load backend user profile:", err);
+      } finally {
+        if (isMounted) setIsLoadingProfile(false);
+      }
+    };
+
+    fetchProfile();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!firstName.trim()) {
+      toast.error("First name is required.");
+      return;
+    }
+
+    try {
+      setIsSavingProfile(true);
+      const res = await api.put<{ success: boolean; message: string; user: any }>("/user/profile", {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: phone.trim(),
+        address: address.trim(),
+        age: age ? Number(age) : undefined,
+        gender,
+        bloodGroup,
+      });
+
+      if (res?.user) {
+        updateUser({
+          name: res.user.name,
+          phone: res.user.phone,
+          address: res.user.address,
+          firstName: res.user.firstName,
+          lastName: res.user.lastName,
+        });
+      }
+
+      toast.success(res.message || "Profile updated successfully!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save profile changes.");
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentPassword) {
+      toast.error("Please enter your current password.");
+      return;
+    }
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("New password and confirmation do not match.");
+      return;
+    }
+
+    try {
+      setIsUpdatingPassword(true);
+      const res = await api.put<{ success: boolean; message: string }>("/user/password", {
+        currentPassword,
+        newPassword,
+      });
+
+      toast.success(res.message || "Password updated successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update password.");
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
 
   const sections: ProfileSettingsSection[] = [
     {
       id: "profile",
       label: "Personal Info",
-      description: "Edit your core profile details and contact information.",
+      description: "Core patient details, contact numbers, and health records info.",
       icon: User,
       content: (
-        <Card className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-100 to-cyan-50">
-              <User className="h-5 w-5 text-cyan-600" />
+        <Card className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+          <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-5 dark:border-slate-800">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-400">
+                <User className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Patient Profile</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Keep your clinical details current for doctor consultations and prescriptions.</p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Profile Information</h3>
-              <p className="text-sm text-gray-500">Keep your patient profile current for faster care.</p>
-            </div>
+            {isLoadingProfile && (
+              <span className="text-xs font-medium text-teal-600 animate-pulse">Syncing...</span>
+            )}
           </div>
 
-          <div className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" defaultValue={firstName} className="h-11 rounded-xl bg-gray-50" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" defaultValue={lastName} className="h-11 rounded-xl bg-gray-50" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <form onSubmit={handleSaveProfile} className="space-y-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="firstName" className="text-xs font-semibold text-slate-700 dark:text-slate-300">First Name</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  defaultValue={user?.email || "rohan.verma@example.com"}
-                  className="h-11 rounded-xl bg-gray-50 pl-11"
+                  id="firstName"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="h-11 rounded-xl bg-slate-50/70 text-sm focus:bg-white dark:bg-slate-900"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="lastName" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Last Name</Label>
+                <Input
+                  id="lastName"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="h-11 rounded-xl bg-slate-50/70 text-sm focus:bg-white dark:bg-slate-900"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <div className="relative">
-                <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <Input id="phone" type="tel" defaultValue="+91 98765 42001" className="h-11 rounded-xl bg-gray-50 pl-11" />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Email Address (Registered)</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    disabled
+                    className="h-11 rounded-xl bg-slate-100 text-sm pl-10 text-slate-500 cursor-not-allowed dark:bg-slate-800"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="phone" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Phone Number</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="h-11 rounded-xl bg-slate-50/70 text-sm pl-10 focus:bg-white dark:bg-slate-900"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
+            {/* Clinical Health Snapshot */}
+            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+              <div className="mb-3 flex items-center gap-2">
+                <HeartPulse className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                  Clinical Metrics (Vitals & Records)
+                </h4>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="age" className="text-xs font-medium text-slate-600 dark:text-slate-400">Age</Label>
+                  <Input
+                    id="age"
+                    type="number"
+                    min="1"
+                    max="120"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    placeholder="e.g. 30"
+                    className="h-10 rounded-xl bg-white text-sm dark:bg-slate-950"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="gender" className="text-xs font-medium text-slate-600 dark:text-slate-400">Biological Gender</Label>
+                  <select
+                    id="gender"
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                    className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 focus:border-teal-500 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="bloodGroup" className="text-xs font-medium text-slate-600 dark:text-slate-400">Blood Group</Label>
+                  <select
+                    id="bloodGroup"
+                    value={bloodGroup}
+                    onChange={(e) => setBloodGroup(e.target.value)}
+                    className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 focus:border-teal-500 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+                  >
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="address" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Home Address (Sample Pickup & Emergency Location)</Label>
               <div className="relative">
-                <MapPin className="absolute left-4 top-4 h-4 w-4 text-gray-400" />
+                <MapPin className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
                 <Textarea
                   id="address"
-                  rows={4}
-                  defaultValue="Indiranagar, Bengaluru, Karnataka"
-                  className="rounded-xl bg-gray-50 pl-11 pt-3"
+                  rows={3}
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Street, Landmark, City, State, PIN"
+                  className="rounded-xl bg-slate-50/70 text-sm pl-10 pt-2.5 focus:bg-white dark:bg-slate-900"
                 />
               </div>
             </div>
 
-            <Button className="rounded-xl bg-gradient-to-r from-cyan-600 to-teal-500 text-white shadow-sm">
-              Save Profile
-            </Button>
-          </div>
+            <div className="flex items-center justify-end gap-3 pt-3">
+              <Button
+                type="submit"
+                disabled={isSavingProfile}
+                className="rounded-xl bg-teal-600 px-6 font-semibold text-white shadow-sm hover:bg-teal-700"
+              >
+                {isSavingProfile ? "Saving to Database..." : "Save Profile Changes"}
+              </Button>
+            </div>
+          </form>
         </Card>
       ),
     },
     {
       id: "security",
-      label: "Security",
-      description: "Control passwords, sign-in protection, and account safety.",
+      label: "Security & Login",
+      description: "Password reset, two-factor authentication, and active session safety.",
       icon: Lock,
       content: (
-        <Card className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-100 to-purple-50">
-              <Lock className="h-5 w-5 text-purple-600" />
+        <Card className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+          <div className="mb-6 flex items-center gap-3 border-b border-slate-100 pb-5 dark:border-slate-800">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-400">
+              <KeyRound className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Security Settings</h3>
-              <p className="text-sm text-gray-500">Update your password and protect your account.</p>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Password & Security</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Secure your account with regular password updates and multi-factor defense.</p>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="currentPassword">Current Password</Label>
-              <Input id="currentPassword" type="password" className="h-11 rounded-xl bg-gray-50" />
+          <form onSubmit={handleUpdatePassword} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="currentPassword" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Current Password</Label>
+              <Input
+                id="currentPassword"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="••••••••••••"
+                className="h-11 rounded-xl bg-slate-50/70 text-sm focus:bg-white dark:bg-slate-900"
+                required
+              />
             </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password</Label>
-                <Input id="newPassword" type="password" className="h-11 rounded-xl bg-gray-50" />
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="newPassword" className="text-xs font-semibold text-slate-700 dark:text-slate-300">New Password</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Min. 6 characters"
+                  className="h-11 rounded-xl bg-slate-50/70 text-sm focus:bg-white dark:bg-slate-900"
+                  required
+                />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input id="confirmPassword" type="password" className="h-11 rounded-xl bg-gray-50" />
+              <div className="space-y-1.5">
+                <Label htmlFor="confirmPassword" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Confirm New Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-type new password"
+                  className="h-11 rounded-xl bg-slate-50/70 text-sm focus:bg-white dark:bg-slate-900"
+                  required
+                />
               </div>
             </div>
 
-            <SettingToggle
-              title="Two-Factor Authentication"
-              description="Add a verification step when signing in from a new device."
-            />
-            <SettingToggle
-              title="Login Alerts"
-              description="Receive an email when your account is accessed from a new location."
-              enabled
-            />
+            <div className="space-y-3 pt-2">
+              <SettingToggle
+                title="Two-Factor Authentication (2FA)"
+                description="Require a one-time OTP code on your registered mobile number when signing in from unfamiliar browsers."
+                enabled={twoFactorAuth}
+                onChange={(v) => {
+                  setTwoFactorAuth(v);
+                  toast.success(`Two-factor authentication ${v ? "enabled" : "disabled"}.`);
+                }}
+              />
+              <SettingToggle
+                title="Instant Sign-in Alerts"
+                description="Receive an email whenever your patient portal is accessed from a new IP address or device."
+                enabled={true}
+              />
+            </div>
 
-            <Button className="rounded-xl bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-sm">
-              Update Security
-            </Button>
-          </div>
+            <div className="flex items-center justify-end gap-3 pt-3">
+              <Button
+                type="submit"
+                disabled={isUpdatingPassword}
+                className="rounded-xl bg-indigo-600 px-6 font-semibold text-white shadow-sm hover:bg-indigo-700"
+              >
+                {isUpdatingPassword ? "Updating Password..." : "Update Password"}
+              </Button>
+            </div>
+          </form>
         </Card>
       ),
     },
     {
       id: "billing",
-      label: "Billing",
-      description: "Manage payment methods and default billing preferences.",
+      label: "Billing & Cards",
+      description: "Manage UPI handles, clinical consultation copays, and receipts.",
       icon: CreditCard,
       content: (
-        <Card className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="mb-6 flex items-center justify-between gap-4">
+        <Card className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+          <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-5 dark:border-slate-800">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-50">
-                <CreditCard className="h-5 w-5 text-emerald-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
+                <CreditCard className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Payment Methods</h3>
-                <p className="text-sm text-gray-500">Manage cards used for appointments and services.</p>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Saved Payment Methods</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Used for lab bookings, doctor appointments, and medical checkup reservations.</p>
               </div>
             </div>
-            <Button variant="outline" className="rounded-xl">
-              Add Card
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => toast.success("Secure payment gateway linked.")}
+              className="rounded-xl text-xs font-semibold"
+            >
+              Add Card / UPI
             </Button>
           </div>
 
           <div className="space-y-3">
-            <div className="flex items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-gradient-to-r from-gray-50 to-white p-4">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm">
-                  <CreditCard className="h-6 w-6 text-gray-600" />
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-teal-200/80 bg-teal-50/40 p-4 dark:border-teal-900/60 dark:bg-teal-950/30">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm dark:bg-slate-900">
+                  <CreditCard className="h-5 w-5 text-teal-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">•••• •••• •••• 4242</p>
-                  <p className="text-xs text-gray-500">Expires 12/25</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">HDFC Regalia Card •••• 4242</p>
+                    <span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-semibold text-teal-800 dark:bg-teal-900/80 dark:text-teal-300">Default</span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Expires 12/28 • Verified Visa</p>
                 </div>
               </div>
-              <span className="rounded-lg bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">Primary</span>
+              <div className="flex items-center text-xs font-medium text-emerald-600 gap-1">
+                <CheckCircle2 className="h-4 w-4" />
+                Active
+              </div>
             </div>
 
-            <div className="flex items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-gradient-to-r from-gray-50 to-white p-4">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm">
-                  <CreditCard className="h-6 w-6 text-gray-600" />
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm dark:bg-slate-900">
+                  <Globe className="h-5 w-5 text-slate-600 dark:text-slate-300" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">•••• •••• •••• 9831</p>
-                  <p className="text-xs text-gray-500">Expires 08/27</p>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">UPI ID: rohan@okhdfcbank</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Instant UPI AutoPay enabled</p>
                 </div>
               </div>
-              <Button variant="ghost" className="rounded-xl text-sm text-gray-600">
-                Edit
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => toast.success("Set as primary payment method.")}
+                className="text-xs text-slate-600 hover:text-slate-900"
+              >
+                Make Primary
               </Button>
             </div>
           </div>
@@ -258,101 +503,96 @@ export function PatientSettings() {
     {
       id: "notifications",
       label: "Notifications",
-      description: `Choose how ${APP_NAME} keeps you updated.`,
+      description: `Appointment reminders, queue updates, and care summaries.`,
       icon: Bell,
       content: (
-        <Card className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-blue-50">
-              <Bell className="h-5 w-5 text-blue-600" />
+        <Card className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+          <div className="mb-6 flex items-center gap-3 border-b border-slate-100 pb-5 dark:border-slate-800">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-50 text-cyan-700 dark:bg-cyan-950/50 dark:text-cyan-400">
+              <Bell className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Notification Preferences</h3>
-              <p className="text-sm text-gray-500">Stay informed without getting overwhelmed.</p>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Notification Alerts</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Configure how {APP_NAME} contacts you about consultations and test results.</p>
             </div>
           </div>
 
-          <div className="space-y-4">
-            {notificationSettings.map((setting) => (
-              <SettingToggle key={setting.title} {...setting} />
-            ))}
+          <div className="space-y-3">
+            <SettingToggle
+              title="Email Notifications"
+              description="Receive booking receipts, diagnostic reports (PDF), and follow-up medical advice."
+              enabled={emailNotifications}
+              onChange={(val) => {
+                setEmailNotifications(val);
+                toast.success(`Email notifications ${val ? "enabled" : "disabled"}.`);
+              }}
+            />
+            <SettingToggle
+              title="SMS Queue Alerts"
+              description="Receive real-time text messages when your OPD token is 2 spots away from the doctor's desk."
+              enabled={smsAlerts}
+              onChange={(val) => {
+                setSmsAlerts(val);
+                toast.success(`SMS queue alerts ${val ? "enabled" : "disabled"}.`);
+              }}
+            />
+            <SettingToggle
+              title="Browser Push Notifications"
+              description="Allow desktop notification popups for real-time consultation alerts and doctor availability."
+              enabled={pushNotifications}
+              onChange={(val) => {
+                setPushNotifications(val);
+                toast.success(`Push notifications ${val ? "enabled" : "disabled"}.`);
+              }}
+            />
           </div>
         </Card>
       ),
     },
     {
       id: "privacy",
-      label: "Privacy",
-      description: "Review data sharing and profile visibility controls.",
+      label: "Privacy & Data",
+      description: "Health data sharing, HIPAA compliance, and doctor access controls.",
       icon: Shield,
       content: (
-        <Card className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-50">
-              <Shield className="h-5 w-5 text-indigo-600" />
+        <Card className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+          <div className="mb-6 flex items-center gap-3 border-b border-slate-100 pb-5 dark:border-slate-800">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
+              <Shield className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Privacy Controls</h3>
-              <p className="text-sm text-gray-500">Decide how your health data is shared and displayed.</p>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Privacy & Consent Controls</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Protect your medical history and govern which physicians can inspect your records.</p>
             </div>
           </div>
 
-          <div className="space-y-4">
-            {privacySettings.map((setting) => (
-              <SettingToggle key={setting.title} {...setting} />
-            ))}
-          </div>
-        </Card>
-      ),
-    },
-    {
-      id: "preferences",
-      label: "Preferences",
-      description: "Set app-level language, timezone, and display preferences.",
-      icon: Palette,
-      content: (
-        <Card className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-100 to-amber-50">
-              <Palette className="h-5 w-5 text-amber-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">App Preferences</h3>
-              <p className="text-sm text-gray-500">Personalize how the dashboard works for you.</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="language">Language</Label>
-              <div className="relative">
-                <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <select id="language" className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-4 text-sm">
-                  <option>English</option>
-                  <option>Hindi</option>
-                  <option>Marathi</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="timezone">Timezone</Label>
-              <select id="timezone" className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm">
-                <option>IST (UTC+5:30)</option>
-                <option>GST (UTC+4)</option>
-                <option>UTC</option>
-              </select>
-            </div>
-
+          <div className="space-y-3">
             <SettingToggle
-              title="Simplified View"
-              description="Use larger touch targets and simplified labels throughout the dashboard."
-              enabled
+              title="Share Medical History With Attending Doctors"
+              description="Allow registered doctors on your appointment roster to view prior prescriptions and lab reports."
+              enabled={shareData}
+              onChange={(val) => {
+                setShareData(val);
+                toast.success(`Doctor data sharing ${val ? "allowed" : "restricted"}.`);
+              }}
             />
-
-            <Button className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm">
-              Save Preferences
-            </Button>
+            <SettingToggle
+              title="Profile Visibility in Clinic OPD Directory"
+              description="Permit reception desk and nursing staff to search your patient profile for expedited check-in."
+              enabled={profileVisibility}
+              onChange={(val) => {
+                setProfileVisibility(val);
+                toast.success(`Directory visibility ${val ? "enabled" : "hidden"}.`);
+              }}
+            />
+            <SettingToggle
+              title="Anonymized Clinical Quality Research"
+              description="Allow anonymized vitals to contribute to medical research and healthcare queue optimization."
+              enabled={false}
+              onChange={(val) => {
+                toast.success(`Research consent ${val ? "granted" : "revoked"}.`);
+              }}
+            />
           </div>
         </Card>
       ),
@@ -361,8 +601,6 @@ export function PatientSettings() {
 
   return (
     <ProfileSettingsShell
-      title="Profile & Settings"
-      description="Manage your account, safety controls, billing, and personal preferences in one clean workspace."
       sections={sections}
       defaultSectionId="profile"
     />

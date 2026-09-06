@@ -12,6 +12,9 @@ import emergencyRoutes from "./routes/emergency.routes.js";
 import patientsRoutes from "./routes/patients.routes.js";
 import queueRoutes from "./routes/queue.routes.js";
 import videoRoutes from "./routes/video.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import checkupsRoutes from "./routes/checkups.routes.js";
+import testsRoutes from "./routes/tests.routes.js";
 
 export function createApp() {
   const app = express();
@@ -72,6 +75,9 @@ export function createApp() {
   app.use("/api/ai", aiRoutes);
   app.use("/api/emergency", emergencyRoutes);
   app.use("/api/video", videoRoutes);
+  app.use("/api/user", userRoutes);
+  app.use("/api/checkups", checkupsRoutes);
+  app.use("/api/tests", testsRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

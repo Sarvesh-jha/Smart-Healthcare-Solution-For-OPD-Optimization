@@ -10,6 +10,9 @@ interface User {
   phone?: string;
   avatar?: string;
   status?: string;
+  address?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 interface AuthContextType {
@@ -19,6 +22,7 @@ interface AuthContextType {
   token: string | null;
   login: (token: string, user: User) => void;
   logout: () => void;
+  updateUser: (updated: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -96,8 +100,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     navigate("/", { replace: true });
   };
 
+  const updateUser = (updated: Partial<User>) => {
+    setUser((prev) => {
+      if (!prev) return null;
+      const next = { ...prev, ...updated };
+      localStorage.setItem("user", JSON.stringify(next));
+      return next;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, loading, user, token, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, loading, user, token, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

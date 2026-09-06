@@ -67,17 +67,6 @@ const preventionTips = [
 export function PrescriptionInsight() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Prescription Insights</h1>
-          <p className="text-gray-600 mt-1">Detailed information about your current medications</p>
-        </div>
-        <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
-          Active Prescription
-        </Badge>
-      </div>
-
       {/* Prescription Details */}
       <Card className="p-6 border-0 shadow-sm bg-gradient-to-r from-cyan-600 to-teal-500 text-white">
         <div className="flex items-start justify-between">

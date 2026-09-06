@@ -6,14 +6,14 @@ import { cn } from "../common/utils";
 export interface ProfileSettingsSection {
   id: string;
   label: string;
-  description: string;
+  description?: string;
   icon: LucideIcon;
   content: ReactNode;
 }
 
 interface ProfileSettingsShellProps {
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
   sections: ProfileSettingsSection[];
   defaultSectionId?: string;
 }
@@ -34,13 +34,18 @@ export function ProfileSettingsShell({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold text-gray-900 dark:text-slate-50">{title}</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{description}</p>
-      </div>
+      {title ? (
+        <div className="border-b border-slate-200/80 pb-4 dark:border-slate-800">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">{title}</h1>
+          {description ? (
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{description}</p>
+          ) : null}
+        </div>
+      ) : null}
 
-      <Card className="rounded-3xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-        <nav className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-2">
+      {/* Clean Tab Navigation Bar */}
+      <Card className="rounded-2xl border border-slate-200/80 bg-white p-1.5 shadow-xs dark:border-slate-800 dark:bg-slate-950">
+        <nav className="flex items-center gap-1.5 overflow-x-auto">
           {sections.map((section) => {
             const Icon = section.icon;
             const isActive = section.id === activeSection.id;
@@ -51,40 +56,21 @@ export function ProfileSettingsShell({
                 type="button"
                 onClick={() => setActiveSectionId(section.id)}
                 className={cn(
-                  "min-w-[220px] shrink-0 rounded-2xl px-4 py-3 text-left transition-all duration-200 hover:-translate-y-0.5",
+                  "inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all whitespace-nowrap",
                   isActive
-                    ? "bg-gradient-to-r from-cyan-600 to-teal-500 text-white shadow-md shadow-cyan-500/20"
-                    : "border border-gray-200 bg-gray-50 text-gray-600 hover:bg-white hover:text-gray-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-950 dark:hover:text-slate-100",
+                    ? "bg-teal-600 text-white shadow-xs"
+                    : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100",
                 )}
               >
-                <div className="flex items-start gap-3">
-                  <Icon className={cn("mt-0.5 h-5 w-5 shrink-0", isActive ? "text-white" : "text-gray-500 dark:text-slate-500")} />
-                  <span className="min-w-0">
-                    <span className="block text-sm font-medium">{section.label}</span>
-                    <span className={cn("mt-1 block text-xs leading-5", isActive ? "text-cyan-50" : "text-gray-500 dark:text-slate-500")}>
-                      {section.description}
-                    </span>
-                  </span>
-                </div>
+                <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-white" : "text-slate-500 dark:text-slate-400")} />
+                <span>{section.label}</span>
               </button>
             );
           })}
         </nav>
       </Card>
 
-      <div className="min-w-0 space-y-6">
-        <Card className="rounded-3xl border border-gray-200 bg-white px-6 py-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-100 to-teal-50">
-              <activeSection.icon className="h-6 w-6 text-cyan-700" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-50">{activeSection.label}</h2>
-              <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{activeSection.description}</p>
-            </div>
-          </div>
-        </Card>
-
+      <div className="min-w-0">
         {activeSection.content}
       </div>
     </div>

@@ -174,13 +174,6 @@ export function AppointmentBooking() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold text-gray-900 dark:text-slate-50">Book Appointment</h1>
-        <p className="mt-2 text-lg text-gray-600 dark:text-slate-400">
-          Choose a doctor, confirm the slot, and pay through the option that works best for you.
-        </p>
-      </div>
-
       <Card className="border-0 p-6 shadow-sm dark:bg-slate-950">
         <div className="flex items-center justify-between gap-4">
           {steps.map((step, index) => (
@@ -256,50 +249,52 @@ export function AppointmentBooking() {
           )}
 
           {currentStep >= 2 && (
-            <Card className="border-0 p-6 shadow-sm dark:bg-slate-950">
-              <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-slate-50">Choose consultation mode</h3>
+            <Card className="border border-slate-200/80 p-6 shadow-xs bg-white dark:bg-slate-950 dark:border-slate-800">
+              <h3 className="mb-4 text-base font-semibold text-slate-900 dark:text-slate-50">Choose consultation mode</h3>
               <div className="grid gap-4 md:grid-cols-2">
                 <button
+                  type="button"
                   onClick={() => setConsultationType("online")}
-                  className={`rounded-[1.5rem] border-2 p-6 text-left transition-all ${
+                  className={`rounded-xl border p-5 text-left transition-all ${
                     consultationType === "online"
-                      ? "border-cyan-600 bg-cyan-50"
-                      : "border-gray-200 hover:border-gray-300 dark:border-slate-800 dark:bg-slate-900"
+                      ? "border-teal-600 bg-teal-50/40 shadow-xs ring-1 ring-teal-500/20 dark:bg-teal-950/30 dark:border-teal-700"
+                      : "border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900"
                   }`}
                 >
                   <div className="mb-3 flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
-                      <Video className="h-6 w-6 text-blue-600" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50 text-teal-700 border border-teal-200/60 dark:bg-teal-950/40 dark:text-teal-300">
+                      <Video className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900 dark:text-slate-50">Video Consultation</p>
-                      <p className="text-2xl font-semibold text-gray-900 dark:text-slate-50">{formatINR(getConsultationFee(doctor, "online"))}</p>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">Video Consultation</p>
+                      <p className="text-lg font-bold text-slate-900 dark:text-slate-50">{formatINR(getConsultationFee(doctor, "online"))}</p>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-slate-400">
-                    Start a secure doctor-patient video call with camera and microphone access.
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    HD clinical video consultation with instant digital prescriptions and lab test recommendations.
                   </p>
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => setConsultationType("offline")}
-                  className={`rounded-[1.5rem] border-2 p-6 text-left transition-all ${
+                  className={`rounded-xl border p-5 text-left transition-all ${
                     consultationType === "offline"
-                      ? "border-cyan-600 bg-cyan-50"
-                      : "border-gray-200 hover:border-gray-300 dark:border-slate-800 dark:bg-slate-900"
+                      ? "border-teal-600 bg-teal-50/40 shadow-xs ring-1 ring-teal-500/20 dark:bg-teal-950/30 dark:border-teal-700"
+                      : "border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900"
                   }`}
                 >
                   <div className="mb-3 flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100">
-                      <UserIcon className="h-6 w-6 text-green-600" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-300">
+                      <UserIcon className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900 dark:text-slate-50">In-Person Visit</p>
-                      <p className="text-2xl font-semibold text-gray-900 dark:text-slate-50">{formatINR(getConsultationFee(doctor, "offline"))}</p>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">In-Person Clinic Visit</p>
+                      <p className="text-lg font-bold text-slate-900 dark:text-slate-50">{formatINR(getConsultationFee(doctor, "offline"))}</p>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-slate-400">
-                    Affordable clinic visit with queue updates visible on your dashboard after booking.
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    In-person physical examination at the hospital clinic with automated queue tokens.
                   </p>
                 </button>
               </div>
@@ -307,46 +302,53 @@ export function AppointmentBooking() {
           )}
 
           {currentStep >= 3 && currentStep < 5 && (
-            <Card className="border-0 p-6 shadow-sm dark:bg-slate-950">
-              <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-slate-50">Select slot and visit reason</h3>
+            <Card className="border border-slate-200/80 p-6 shadow-xs bg-white dark:bg-slate-950 dark:border-slate-800">
+              <h3 className="mb-4 text-base font-semibold text-slate-900 dark:text-slate-50">Select date and slot</h3>
 
               <div className="mb-6 flex justify-center">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
-                  className="rounded-xl border"
+                  className="rounded-xl border border-slate-200 p-3"
                   disabled={(date) => date < today}
                 />
               </div>
 
               <div>
-                <p className="mb-3 text-sm font-medium text-gray-900 dark:text-slate-50">Available time slots</p>
-                <div className="grid grid-cols-3 gap-2 md:grid-cols-4">
-                  {timeSlots.map((slot) => (
-                    <button
-                      key={slot}
-                      onClick={() => setSelectedSlot(slot)}
-                      className={`rounded-xl px-3 py-2 text-sm font-medium transition-all ${
-                        selectedSlot === slot
-                          ? "bg-gradient-to-r from-cyan-600 to-teal-500 text-white"
-                          : "bg-gray-50 text-gray-700 hover:bg-gray-100 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
-                      }`}
-                    >
-                      {slot}
-                    </button>
-                  ))}
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Available Time Slots</p>
+                  <span className="text-xs text-slate-400">Selected: <strong className="text-teal-700 dark:text-teal-300">{selectedSlot}</strong></span>
+                </div>
+                <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4">
+                  {timeSlots.map((slot) => {
+                    const isSelected = selectedSlot === slot;
+                    return (
+                      <button
+                        key={slot}
+                        type="button"
+                        onClick={() => setSelectedSlot(slot)}
+                        className={`rounded-full px-3.5 py-2 text-xs font-medium transition-all text-center ${
+                          isSelected
+                            ? "bg-teal-600 text-white font-semibold shadow-xs ring-2 ring-teal-500/20"
+                            : "border border-slate-200 bg-white text-slate-700 hover:border-teal-400 hover:bg-teal-50/40 hover:text-teal-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+                        }`}
+                      >
+                        {slot}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className="mt-5">
-                <label className="text-sm font-medium text-gray-900 dark:text-slate-50">Reason for consultation</label>
+              <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+                <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Reason for visit</label>
                 <textarea
-                  rows={4}
+                  rows={3}
                   value={reason}
                   onChange={(event) => setReason(event.target.value)}
-                  placeholder="Describe the concern, symptoms, or follow-up reason."
-                  className="mt-2 w-full rounded-[1.4rem] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-all focus:border-cyan-400 focus:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-slate-50"
+                  placeholder="E.g. Routine checkup, follow-up on lab tests, fever or chest pain."
+                  className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-2xs outline-none transition-all focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-50"
                 />
               </div>
             </Card>
