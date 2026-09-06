@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, Lock, User, Phone, Shield, Zap, Clock } from "lucide-react";
+import { Mail, Lock, User, Phone, Shield, Zap, Clock, Eye, EyeOff } from "lucide-react";
 import { Button } from "../components/common/Button";
 import { Input } from "../components/common/Input";
 import { Label } from "../components/common/Label";
@@ -18,8 +18,23 @@ export function LandingPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  const handleSelectRole = (role: "patient" | "doctor" | "admin") => {
+    setUserRole(role);
+    setError("");
+  };
+
+  const toggleAuthMode = () => {
+    setIsLogin(!isLogin);
+    setError("");
+    setName("");
+    setEmail("");
+    setPhone("");
+    setPassword("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +76,6 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/30 to-teal-50/30 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-cyan-200 rounded-full opacity-10 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-teal-200 rounded-full opacity-10 blur-3xl" />
@@ -90,7 +104,6 @@ export function LandingPage() {
             </p>
           </div>
 
-          {/* Trust Badges */}
           <div className="flex flex-wrap gap-3 pt-4">
             <div className="flex items-center gap-2 px-4 py-2.5 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 shadow-sm">
               <Shield className="w-4 h-4 text-cyan-600" />
@@ -148,7 +161,7 @@ export function LandingPage() {
             <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
               <button
                 type="button"
-                onClick={() => setUserRole("patient")}
+                onClick={() => handleSelectRole("patient")}
                 className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   userRole === "patient"
                     ? "bg-white text-gray-900 shadow-sm"
@@ -159,7 +172,7 @@ export function LandingPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setUserRole("doctor")}
+                onClick={() => handleSelectRole("doctor")}
                 className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   userRole === "doctor"
                     ? "bg-white text-gray-900 shadow-sm"
@@ -170,7 +183,7 @@ export function LandingPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setUserRole("admin")}
+                onClick={() => handleSelectRole("admin")}
                 className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   userRole === "admin"
                     ? "bg-white text-gray-900 shadow-sm"
@@ -189,8 +202,8 @@ export function LandingPage() {
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <Input 
                       id="name" 
-                      placeholder="Rohan Verma" 
-                      className="pl-12 h-12 rounded-xl bg-gray-50 border-gray-200 focus:border-cyan-500 focus:ring-cyan-500 transition-all"
+                      placeholder="e.g. Alex Morgan" 
+                      className="pl-12 h-12 rounded-xl bg-gray-50/80 border-gray-200 focus:border-cyan-500 focus:ring-cyan-500 transition-all text-gray-900 placeholder:text-gray-400"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                     />
@@ -205,8 +218,8 @@ export function LandingPage() {
                   <Input 
                     id="email" 
                     type="email" 
-                    placeholder="rohan.verma@example.com" 
-                    className="pl-12 h-12 rounded-xl bg-gray-50 border-gray-200 focus:border-cyan-500 focus:ring-cyan-500 transition-all"
+                    placeholder="name@company.com" 
+                    className="pl-12 h-12 rounded-xl bg-gray-50/80 border-gray-200 focus:border-cyan-500 focus:ring-cyan-500 transition-all text-gray-900 placeholder:text-gray-400 font-normal"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -222,8 +235,8 @@ export function LandingPage() {
                     <Input 
                       id="phone" 
                       type="tel" 
-                      placeholder="+1 (555) 000-0000" 
-                      className="pl-12 h-12 rounded-xl bg-gray-50 border-gray-200 focus:border-cyan-500 focus:ring-cyan-500 transition-all"
+                      placeholder="e.g. +91 98765 43210" 
+                      className="pl-12 h-12 rounded-xl bg-gray-50/80 border-gray-200 focus:border-cyan-500 focus:ring-cyan-500 transition-all text-gray-900 placeholder:text-gray-400"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                     />
@@ -237,13 +250,21 @@ export function LandingPage() {
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <Input 
                     id="password" 
-                    type="password" 
-                    placeholder="••••••••" 
-                    className="pl-12 h-12 rounded-xl bg-gray-50 border-gray-200 focus:border-cyan-500 focus:ring-cyan-500 transition-all"
+                    type={showPassword ? "text" : "password"} 
+                    placeholder={isLogin ? "Enter your password" : "Create password (min. 8 characters)"} 
+                    className="pl-12 pr-12 h-12 rounded-xl bg-gray-50/80 border-gray-200 focus:border-cyan-500 focus:ring-cyan-500 transition-all text-gray-900 placeholder:text-gray-400 font-normal"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 focus:outline-none transition-colors"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -286,7 +307,7 @@ export function LandingPage() {
             <div className="text-center text-sm text-gray-600">
               {isLogin ? "Don't have an account? " : "Already have an account? "}
               <button 
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={toggleAuthMode}
                 className="text-cyan-600 hover:text-cyan-700 font-semibold"
               >
                 {isLogin ? "Sign up" : "Sign in"}

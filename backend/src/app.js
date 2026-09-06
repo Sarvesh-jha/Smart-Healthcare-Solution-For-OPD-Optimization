@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import morgan from "morgan";
 import { env } from "./config/env.js";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import aiRoutes from "./routes/ai.routes.js";
 import appointmentsRoutes from "./routes/appointments.routes.js";
 import authRoutes from "./routes/auth.routes.js";
@@ -72,16 +73,8 @@ export function createApp() {
   app.use("/api/emergency", emergencyRoutes);
   app.use("/api/video", videoRoutes);
 
-  app.use((req, res) => {
-    res.status(404).json({
-      message: `Route not found: ${req.method} ${req.originalUrl}`,
-    });
-  });
-
-  app.use((err, _req, res, _next) => {
-    console.error("Unhandled backend error.", err);
-    res.status(500).json({ message: "An unexpected server error occurred." });
-  });
+  app.use(notFoundHandler);
+  app.use(errorHandler);
 
   return app;
 }

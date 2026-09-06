@@ -29,8 +29,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const navigate = useNavigate();
-
-  // Check for existing token on mount
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
@@ -73,17 +71,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = (newToken: string, newUser: User) => {
-    // Store in localStorage
     localStorage.setItem("token", newToken);
     localStorage.setItem("user", JSON.stringify(newUser));
     localStorage.setItem("role", newUser.role);
-
-    // Update state
     setToken(newToken);
     setUser(newUser);
     setIsAuthenticated(true);
-
-    // Navigate to appropriate dashboard
     if (newUser.role === "doctor") {
       navigate("/doctor", { replace: true });
     } else if (newUser.role === "admin") {
@@ -94,17 +87,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    // Clear localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("role");
-
-    // Reset state
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
-
-    // Redirect to login page
     navigate("/", { replace: true });
   };
 

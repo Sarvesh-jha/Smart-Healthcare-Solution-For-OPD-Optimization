@@ -36,8 +36,6 @@ export function AdminDashboard() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Adding new staff:", formData);
-    // Add logic to save staff here
     alert(`Successfully added ${formData.name} as a ${formData.role}`);
     setIsOpen(false);
     setFormData({ name: "", email: "", role: "Doctor", department: "" });

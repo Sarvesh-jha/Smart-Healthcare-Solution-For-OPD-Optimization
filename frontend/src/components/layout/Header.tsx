@@ -18,8 +18,6 @@ interface HeaderProps {
  */
 export function Header({ userRole }: HeaderProps) {
   const { user } = useAuth();
-  
-  // Use the role from props or fallback to auth context
   const role = userRole || user?.role || "patient";
 
   const renderNotifications = () => {

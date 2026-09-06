@@ -57,8 +57,6 @@ export function AIChatbot() {
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Determine which quick actions to show based on user role
   const quickActions = user?.role === "doctor" ? doctorQuickActions : patientQuickActions;
 
   const scrollToBottom = () => {

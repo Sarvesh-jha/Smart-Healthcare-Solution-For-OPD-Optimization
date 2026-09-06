@@ -72,7 +72,7 @@ export function AddDoctorPage() {
                   <Input 
                     id="name" 
                     name="name"
-                    placeholder="Dr. Aarav Mehta" 
+                    placeholder="e.g. Dr. Jane Smith" 
                     className="pl-10 h-12 rounded-xl bg-gray-50 border-gray-200 focus:border-cyan-500"
                     value={formData.name}
                     onChange={handleInputChange}
@@ -88,7 +88,7 @@ export function AddDoctorPage() {
                     id="email" 
                     name="email"
                     type="email"
-                    placeholder="aarav.mehta@medirxcare.in" 
+                    placeholder="doctor@medirxcare.in" 
                     className="pl-10 h-12 rounded-xl bg-gray-50 border-gray-200 focus:border-cyan-500"
                     value={formData.email}
                     onChange={handleInputChange}
@@ -103,7 +103,7 @@ export function AddDoctorPage() {
                   <Input 
                     id="phone" 
                     name="phone"
-                    placeholder="+91 98765 41003" 
+                    placeholder="e.g. +91 98765 43210" 
                     className="pl-10 h-12 rounded-xl bg-gray-50 border-gray-200 focus:border-cyan-500"
                     value={formData.phone}
                     onChange={handleInputChange}
@@ -147,7 +147,7 @@ export function AddDoctorPage() {
                   <Input 
                     id="experience" 
                     name="experience"
-                    placeholder="e.g. 10 years" 
+                    placeholder="e.g. 8 years" 
                     className="pl-10 h-12 rounded-xl bg-gray-50 border-gray-200 focus:border-cyan-500"
                     value={formData.experience}
                     onChange={handleInputChange}
@@ -162,7 +162,7 @@ export function AddDoctorPage() {
                   <Input 
                     id="location" 
                     name="location"
-                    placeholder="e.g. Heart Care Block, Level 3" 
+                    placeholder="e.g. OPD Wing B, Suite 201" 
                     className="pl-10 h-12 rounded-xl bg-gray-50 border-gray-200 focus:border-cyan-500"
                     value={formData.location}
                     onChange={handleInputChange}
@@ -177,7 +177,7 @@ export function AddDoctorPage() {
                   <Input 
                     id="availability" 
                     name="availability"
-                    placeholder="e.g. Mon-Sat, 10:00 AM - 6:00 PM" 
+                    placeholder="e.g. Mon-Fri, 9:00 AM - 5:00 PM" 
                     className="pl-10 h-12 rounded-xl bg-gray-50 border-gray-200 focus:border-cyan-500"
                     value={formData.availability}
                     onChange={handleInputChange}

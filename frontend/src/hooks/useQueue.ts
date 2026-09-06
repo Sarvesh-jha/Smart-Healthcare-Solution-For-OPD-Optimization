@@ -25,8 +25,6 @@ export function useQueue() {
 
   useEffect(() => {
     fetchQueue();
-    
-    // In a real app, you might want to poll every 30 seconds
     const interval = setInterval(fetchQueue, 30000);
     return () => clearInterval(interval);
   }, []);

@@ -72,7 +72,7 @@ export function AddPatientPage() {
                   <Input 
                     id="name" 
                     name="name"
-                    placeholder="Rohan Verma" 
+                    placeholder="e.g. Alex Morgan" 
                     className="pl-10 h-12 rounded-xl bg-gray-50 border-gray-200 focus:border-cyan-500"
                     value={formData.name}
                     onChange={handleInputChange}
@@ -88,7 +88,7 @@ export function AddPatientPage() {
                     id="email" 
                     name="email"
                     type="email"
-                    placeholder="rohan.verma@example.com" 
+                    placeholder="patient@example.com" 
                     className="pl-10 h-12 rounded-xl bg-gray-50 border-gray-200 focus:border-cyan-500"
                     value={formData.email}
                     onChange={handleInputChange}
@@ -103,7 +103,7 @@ export function AddPatientPage() {
                   <Input 
                     id="phone" 
                     name="phone"
-                    placeholder="+91 98765 42003" 
+                    placeholder="e.g. +91 98765 43210" 
                     className="pl-10 h-12 rounded-xl bg-gray-50 border-gray-200 focus:border-cyan-500"
                     value={formData.phone}
                     onChange={handleInputChange}
@@ -120,7 +120,7 @@ export function AddPatientPage() {
                       id="age" 
                       name="age"
                       type="number"
-                      placeholder="25" 
+                      placeholder="e.g. 28" 
                       className="pl-10 h-12 rounded-xl bg-gray-50 border-gray-200 focus:border-cyan-500"
                       value={formData.age}
                       onChange={handleInputChange}
@@ -183,7 +183,7 @@ export function AddPatientPage() {
                   <Input 
                     id="address" 
                     name="address"
-                    placeholder="Indiranagar, Bengaluru" 
+                    placeholder="e.g. 123 Healthcare Way, Bengaluru" 
                     className="pl-10 h-12 rounded-xl bg-gray-50 border-gray-200 focus:border-cyan-500"
                     value={formData.address}
                     onChange={handleInputChange}
