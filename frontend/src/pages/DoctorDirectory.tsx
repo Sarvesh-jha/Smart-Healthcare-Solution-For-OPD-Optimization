@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { Search, Star, Video, User as UserIcon, Calendar, MapPin } from "lucide-react";
+import { Star, Video, User as UserIcon, Calendar, MapPin } from "lucide-react";
 import { Card } from "../components/common/Card";
 import { Button } from "../components/common/Button";
-import { Input } from "../components/common/Input";
 import { useNavigate } from "react-router";
 import { DoctorService } from "../services/DoctorService";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { DoctorSearchLogo } from "../components/icons/DoctorSearchLogo";
 import { formatINR } from "../utils/currency";
+import { useSearch } from "../context/SearchContext";
 
 const specializations = [
   "All",
@@ -22,8 +22,8 @@ const specializations = [
 
 export function DoctorDirectory() {
   const navigate = useNavigate();
+  const { searchQuery } = useSearch();
   const [selectedSpecialty, setSelectedSpecialty] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
   const [doctors, setDoctors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -45,25 +45,18 @@ export function DoctorDirectory() {
 
   const filteredDoctors = doctors.filter((doctor) => {
     const matchesSpecialty = selectedSpecialty === "All" || doctor.specialty === selectedSpecialty;
+    const q = searchQuery.toLowerCase().trim();
     const matchesSearch =
-      doctor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doctor.specialty.toLowerCase().includes(searchQuery.toLowerCase());
+      !q ||
+      doctor.name.toLowerCase().includes(q) ||
+      doctor.specialty.toLowerCase().includes(q) ||
+      (doctor.bio && doctor.bio.toLowerCase().includes(q)) ||
+      (doctor.location && doctor.location.toLowerCase().includes(q));
     return matchesSpecialty && matchesSearch;
   });
 
   return (
     <div className="space-y-6">
-      {/* Search Bar */}
-      <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-        <Input
-          value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
-          placeholder="Search by doctor name or specialty..."
-          className="h-11 rounded-lg border-slate-200 bg-white pl-10 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:border-teal-600 focus-visible:ring-teal-500/20 shadow-xs dark:border-slate-800 dark:bg-slate-900"
-        />
-      </div>
-
       {/* Specialty Filter Chips */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
         {specializations.map((specialty) => {

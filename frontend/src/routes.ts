@@ -45,6 +45,10 @@ export const router = createBrowserRouter([
         Component: LandingPage,
       },
       {
+        path: "login",
+        Component: LandingPage,
+      },
+      {
         path: "dashboard",
         Component: ProtectedPatientLayout,
         children: [

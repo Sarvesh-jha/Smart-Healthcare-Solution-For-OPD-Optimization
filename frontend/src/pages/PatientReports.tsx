@@ -1,6 +1,7 @@
 import { FileText, Download, Eye, Calendar, TrendingUp, Activity } from "lucide-react";
 import { Card } from "../components/common/Card";
 import { Button } from "../components/common/Button";
+import { useSearch } from "../context/SearchContext";
 
 const reports = [
   {
@@ -67,6 +68,19 @@ const vitalTrends = [
 ];
 
 export function PatientReports() {
+  const { searchQuery } = useSearch();
+  const q = searchQuery.toLowerCase().trim();
+
+  const filteredReports = reports.filter((report) => {
+    if (!q) return true;
+    return (
+      report.name.toLowerCase().includes(q) ||
+      report.doctor.toLowerCase().includes(q) ||
+      report.type.toLowerCase().includes(q) ||
+      report.status.toLowerCase().includes(q)
+    );
+  });
+
   return (
     <div className="space-y-6">
       {/* Vital Trends */}
@@ -97,7 +111,9 @@ export function PatientReports() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-gray-900">All Reports</h3>
-              <p className="text-sm text-gray-500">Your complete medical report history</p>
+              <p className="text-sm text-gray-500">
+                {searchQuery ? `Showing results matching "${searchQuery}"` : "Your complete medical report history"}
+              </p>
             </div>
             <Button variant="outline" className="rounded-xl">
               <FileText className="w-4 h-4 mr-2" />
@@ -106,60 +122,66 @@ export function PatientReports() {
           </div>
         </div>
 
-        <div className="divide-y divide-gray-200">
-          {reports.map((report) => (
-            <div key={report.id} className="p-6 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                    report.type === "Lab Report" 
-                      ? "bg-cyan-100" 
-                      : report.type === "Radiology"
-                      ? "bg-blue-100"
-                      : "bg-purple-100"
-                  }`}>
-                    <FileText className={`w-6 h-6 ${
+        {filteredReports.length > 0 ? (
+          <div className="divide-y divide-gray-200">
+            {filteredReports.map((report) => (
+              <div key={report.id} className="p-6 hover:bg-gray-50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                       report.type === "Lab Report" 
-                        ? "text-cyan-600" 
+                        ? "bg-cyan-100" 
                         : report.type === "Radiology"
-                        ? "text-blue-600"
-                        : "text-purple-600"
-                    }`} />
-                  </div>
-                  <div>
-                    <h4 className="text-base font-semibold text-gray-900">{report.name}</h4>
-                    <div className="flex items-center gap-4 mt-1">
-                      <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                        <Calendar className="w-3.5 h-3.5" />
-                        {new Date(report.date).toLocaleDateString()}
+                        ? "bg-blue-100"
+                        : "bg-purple-100"
+                    }`}>
+                      <FileText className={`w-6 h-6 ${
+                        report.type === "Lab Report" 
+                          ? "text-cyan-600" 
+                          : report.type === "Radiology"
+                          ? "text-blue-600"
+                          : "text-purple-600"
+                      }`} />
+                    </div>
+                    <div>
+                      <h4 className="text-base font-semibold text-gray-900">{report.name}</h4>
+                      <div className="flex items-center gap-4 mt-1">
+                        <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                          <Calendar className="w-3.5 h-3.5" />
+                          {new Date(report.date).toLocaleDateString()}
+                        </div>
+                        <span className="text-sm text-gray-500">•</span>
+                        <span className="text-sm text-gray-500">{report.doctor}</span>
+                        <span className="text-sm text-gray-500">•</span>
+                        <span className="text-sm text-gray-500">{report.fileSize}</span>
                       </div>
-                      <span className="text-sm text-gray-500">•</span>
-                      <span className="text-sm text-gray-500">{report.doctor}</span>
-                      <span className="text-sm text-gray-500">•</span>
-                      <span className="text-sm text-gray-500">{report.fileSize}</span>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
-                    report.status === "normal"
-                      ? "bg-green-50 text-green-700"
-                      : "bg-amber-50 text-amber-700"
-                  }`}>
-                    {report.type}
-                  </span>
-                  <Button variant="outline" size="sm" className="rounded-xl">
-                    <Eye className="w-4 h-4 mr-2" />
-                    View
-                  </Button>
-                  <Button variant="outline" size="sm" className="rounded-xl">
-                    <Download className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center gap-3">
+                    <span className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
+                      report.status === "normal"
+                        ? "bg-green-50 text-green-700"
+                        : "bg-amber-50 text-amber-700"
+                    }`}>
+                      {report.type}
+                    </span>
+                    <Button variant="outline" size="sm" className="rounded-xl">
+                      <Eye className="w-4 h-4 mr-2" />
+                      View
+                    </Button>
+                    <Button variant="outline" size="sm" className="rounded-xl">
+                      <Download className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-10 text-center text-sm text-slate-500">
+            No medical reports found matching "{searchQuery}".
+          </div>
+        )}
       </Card>
     </div>
   );

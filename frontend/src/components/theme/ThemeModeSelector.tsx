@@ -26,10 +26,10 @@ export function ThemeModeSelector({ label = "Appearance" }: { label?: string }) 
 
   return (
     <>
-      <DropdownMenuLabel className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-slate-400">
+      <DropdownMenuLabel className="px-3 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
         {label}
       </DropdownMenuLabel>
-      <DropdownMenuRadioGroup value={activeTheme} onValueChange={(value) => setTheme(value)}>
+      <DropdownMenuRadioGroup value={activeTheme} onValueChange={(value) => setTheme(value)} className="space-y-0.5">
         {themeOptions.map((option) => {
           const Icon = option.icon;
           const isActive = activeTheme === option.value;
@@ -38,12 +38,12 @@ export function ThemeModeSelector({ label = "Appearance" }: { label?: string }) 
             <DropdownMenuRadioItem
               key={option.value}
               value={option.value}
-              className="mx-1 rounded-xl px-9 py-2.5 focus:bg-cyan-50 focus:text-cyan-700 dark:focus:bg-slate-800 dark:focus:text-slate-100"
+              className="rounded-xl px-8 py-1.5 text-xs font-medium focus:bg-teal-50 focus:text-teal-700 dark:focus:bg-teal-950/40 dark:focus:text-teal-300 cursor-pointer"
             >
-              <Icon className={isActive ? "text-cyan-600 dark:text-cyan-300" : "text-gray-500 dark:text-slate-400"} />
-              <span className="text-sm text-gray-700 dark:text-slate-200">{option.label}</span>
+              <Icon className={`h-3.5 w-3.5 ${isActive ? "text-teal-600 dark:text-teal-400" : "text-slate-400 dark:text-slate-500"}`} />
+              <span className="text-xs text-slate-700 dark:text-slate-200">{option.label}</span>
               {option.value === "system" && (
-                <span className="ml-auto text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400 dark:text-slate-500">
+                <span className="ml-auto text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
                   {previewTheme}
                 </span>
               )}

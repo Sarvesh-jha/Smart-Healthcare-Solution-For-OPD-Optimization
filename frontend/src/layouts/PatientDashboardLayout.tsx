@@ -2,7 +2,6 @@ import { Outlet, useLocation } from "react-router";
 import { 
   LayoutDashboard, 
   Calendar, 
-  Settings,
   Heart,
   TestTube,
   FileText,
@@ -23,7 +22,6 @@ const patientNavigation = [
   { name: "Reports", path: "/dashboard/reports", icon: ClipboardList },
   { name: "Health Checkups", path: "/dashboard/health-checkups", icon: Heart },
   { name: "Tests & Services", path: "/dashboard/tests-services", icon: TestTube },
-  { name: "Profile", path: "/dashboard/settings", icon: Settings },
 ];
 
 /**

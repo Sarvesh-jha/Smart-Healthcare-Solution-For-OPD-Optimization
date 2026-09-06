@@ -1,6 +1,7 @@
 import { Pill, Clock, AlertTriangle, Info, Lightbulb, ShieldAlert } from "lucide-react";
 import { Card } from "../components/common/Card";
 import { Badge } from "../components/common/Badge";
+import { useSearch } from "../context/SearchContext";
 
 const medicines = [
   {
@@ -65,6 +66,20 @@ const preventionTips = [
 ];
 
 export function PrescriptionInsight() {
+  const { searchQuery } = useSearch();
+  const q = searchQuery.toLowerCase().trim();
+
+  const filteredMedicines = medicines.filter((medicine) => {
+    if (!q) return true;
+    return (
+      medicine.name.toLowerCase().includes(q) ||
+      medicine.instructions.toLowerCase().includes(q) ||
+      medicine.dosage.toLowerCase().includes(q) ||
+      medicine.frequency.toLowerCase().includes(q) ||
+      medicine.timing.toLowerCase().includes(q)
+    );
+  });
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Prescription Details */}
@@ -84,36 +99,48 @@ export function PrescriptionInsight() {
 
       {/* Medicine Cards */}
       <div className="space-y-4">
-        <h3 className="font-semibold text-gray-900">Your Medications</h3>
-        <div className="grid md:grid-cols-3 gap-4">
-          {medicines.map((medicine) => (
-            <Card key={medicine.id} className="p-6 border-0 shadow-sm hover:shadow-md transition-all">
-              <div className="flex items-start justify-between mb-4">
-                <div className={`w-12 h-12 bg-${medicine.color}-100 rounded-xl flex items-center justify-center`}>
-                  <Pill className={`w-6 h-6 text-${medicine.color}-600`} />
-                </div>
-                <Badge variant="outline" className="text-xs">
-                  {medicine.duration}
-                </Badge>
-              </div>
-              <h4 className="font-semibold text-gray-900 mb-1">{medicine.name}</h4>
-              <p className="text-2xl font-bold text-gray-900 mb-3">{medicine.dosage}</p>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Clock className="w-4 h-4" />
-                  <span>{medicine.frequency}</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Info className="w-4 h-4" />
-                  <span>{medicine.timing}</span>
-                </div>
-              </div>
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-xs text-gray-600">{medicine.instructions}</p>
-              </div>
-            </Card>
-          ))}
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-gray-900">Your Medications</h3>
+          {searchQuery && (
+            <p className="text-xs text-slate-500">Matching "{searchQuery}"</p>
+          )}
         </div>
+
+        {filteredMedicines.length > 0 ? (
+          <div className="grid md:grid-cols-3 gap-4">
+            {filteredMedicines.map((medicine) => (
+              <Card key={medicine.id} className="p-6 border-0 shadow-sm hover:shadow-md transition-all">
+                <div className="flex items-start justify-between mb-4">
+                  <div className={`w-12 h-12 bg-${medicine.color}-100 rounded-xl flex items-center justify-center`}>
+                    <Pill className={`w-6 h-6 text-${medicine.color}-600`} />
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    {medicine.duration}
+                  </Badge>
+                </div>
+                <h4 className="font-semibold text-gray-900 mb-1">{medicine.name}</h4>
+                <p className="text-2xl font-bold text-gray-900 mb-3">{medicine.dosage}</p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Clock className="w-4 h-4" />
+                    <span>{medicine.frequency}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Info className="w-4 h-4" />
+                    <span>{medicine.timing}</span>
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <p className="text-xs text-gray-600">{medicine.instructions}</p>
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card className="p-8 text-center border border-slate-200/80 bg-white">
+            <p className="text-sm text-slate-500">No medications found matching "{searchQuery}".</p>
+          </Card>
+        )}
       </div>
 
       {/* Dosage Schedule */}

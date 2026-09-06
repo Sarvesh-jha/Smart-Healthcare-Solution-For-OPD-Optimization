@@ -1,6 +1,6 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { useLocation } from "react-router";
 import type { LucideIcon } from "lucide-react";
-import { Card } from "../common/Card";
 import { cn } from "../common/utils";
 
 export interface ProfileSettingsSection {
@@ -18,14 +18,29 @@ interface ProfileSettingsShellProps {
   defaultSectionId?: string;
 }
 
+/**
+ * Modern Two-Column Settings Architecture
+ * Left Column: Vertical secondary navigation list (w-64 shrink-0)
+ * Right Column: Dedicated settings card for the active section (flex-1 max-w-3xl)
+ */
 export function ProfileSettingsShell({
   title,
   description,
   sections,
   defaultSectionId,
 }: ProfileSettingsShellProps) {
-  const initialSection = sections.find((section) => section.id === defaultSectionId)?.id ?? sections[0]?.id ?? "";
+  const location = useLocation();
+  const hashId = location.hash.replace("#", "");
+  const matchedHashSection = sections.find((s) => s.id === hashId)?.id;
+  const initialSection = matchedHashSection || (sections.find((section) => section.id === defaultSectionId)?.id ?? sections[0]?.id ?? "");
   const [activeSectionId, setActiveSectionId] = useState(initialSection);
+
+  useEffect(() => {
+    if (hashId && sections.some((s) => s.id === hashId)) {
+      setActiveSectionId(hashId);
+    }
+  }, [hashId, sections]);
+
   const activeSection = sections.find((section) => section.id === activeSectionId) ?? sections[0];
 
   if (!activeSection) {
@@ -43,35 +58,49 @@ export function ProfileSettingsShell({
         </div>
       ) : null}
 
-      {/* Clean Tab Navigation Bar */}
-      <Card className="rounded-2xl border border-slate-200/80 bg-white p-1.5 shadow-xs dark:border-slate-800 dark:bg-slate-950">
-        <nav className="flex items-center gap-1.5 overflow-x-auto">
-          {sections.map((section) => {
-            const Icon = section.icon;
-            const isActive = section.id === activeSection.id;
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
+        {/* Left Column: Secondary Navigation (w-64 shrink-0) */}
+        <aside className="w-full lg:w-64 shrink-0">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-2 shadow-xs dark:border-slate-800 dark:bg-slate-950">
+            <nav className="flex flex-row lg:flex-col gap-1 overflow-x-auto lg:overflow-visible scrollbar-none">
+              {sections.map((section) => {
+                const Icon = section.icon;
+                const isActive = section.id === activeSection.id;
 
-            return (
-              <button
-                key={section.id}
-                type="button"
-                onClick={() => setActiveSectionId(section.id)}
-                className={cn(
-                  "inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all whitespace-nowrap",
-                  isActive
-                    ? "bg-teal-600 text-white shadow-xs"
-                    : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100",
-                )}
-              >
-                <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-white" : "text-slate-500 dark:text-slate-400")} />
-                <span>{section.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-      </Card>
+                return (
+                  <button
+                    key={section.id}
+                    type="button"
+                    onClick={() => setActiveSectionId(section.id)}
+                    className={cn(
+                      "flex items-center gap-3 w-full rounded-lg px-3.5 py-2.5 text-xs sm:text-sm font-medium transition-all text-left whitespace-nowrap",
+                      isActive
+                        ? "bg-teal-50 text-teal-700 font-medium dark:bg-teal-950/50 dark:text-teal-300"
+                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-200"
+                    )}
+                  >
+                    <Icon
+                      className={cn(
+                        "h-4 w-4 shrink-0 transition-colors",
+                        isActive
+                          ? "text-teal-600 dark:text-teal-400"
+                          : "text-slate-400 dark:text-slate-500"
+                      )}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate">{section.label}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        </aside>
 
-      <div className="min-w-0">
-        {activeSection.content}
+        {/* Right Column: Dedicated Settings Card (flex-1 max-w-3xl) */}
+        <main className="flex-1 max-w-3xl w-full min-w-0">
+          {activeSection.content}
+        </main>
       </div>
     </div>
   );

@@ -17,6 +17,7 @@ import {
 import { api } from "../services/ApiService";
 import { formatINR } from "../utils/currency";
 import { toast } from "sonner";
+import { useSearch } from "../context/SearchContext";
 
 interface CheckupPackage {
   id: string;
@@ -49,6 +50,7 @@ const timeSlots = [
 ];
 
 export function PatientHealthCheckups() {
+  const { searchQuery } = useSearch();
   const [packages, setPackages] = useState<CheckupPackage[]>([]);
   const [bookings, setBookings] = useState<CheckupBooking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -129,6 +131,16 @@ export function PatientHealthCheckups() {
       setIsSubmitting(false);
     }
   };
+
+  const q = searchQuery.toLowerCase().trim();
+  const filteredPackages = packages.filter((pkg) => {
+    if (!q) return true;
+    return (
+      pkg.name.toLowerCase().includes(q) ||
+      pkg.description.toLowerCase().includes(q) ||
+      pkg.includes.some((item) => item.toLowerCase().includes(q))
+    );
+  });
 
   return (
     <div className="space-y-6 pb-8">
@@ -224,9 +236,9 @@ export function PatientHealthCheckups() {
               <div key={i} className="h-72 bg-slate-100 animate-pulse rounded-xl border border-slate-200" />
             ))}
           </div>
-        ) : (
+        ) : filteredPackages.length > 0 ? (
           <div className="grid gap-5 sm:grid-cols-2">
-            {packages.map((pkg) => (
+            {filteredPackages.map((pkg) => (
               <Card
                 key={pkg.id}
                 className={`p-6 bg-white border rounded-xl shadow-xs transition-all relative flex flex-col justify-between dark:bg-slate-900 ${
@@ -291,6 +303,10 @@ export function PatientHealthCheckups() {
               </Card>
             ))}
           </div>
+        ) : (
+          <Card className="p-8 text-center border border-slate-200/80 bg-white dark:bg-slate-900 rounded-xl">
+            <p className="text-sm text-slate-500">No health checkup packages found matching "{searchQuery}".</p>
+          </Card>
         )}
       </div>
 

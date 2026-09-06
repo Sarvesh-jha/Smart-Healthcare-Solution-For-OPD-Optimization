@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import {
   Shield,
   Settings,
@@ -6,9 +6,11 @@ import {
   Lock,
   LogOut,
   ChevronRight,
+  ChevronDown,
   Users,
   Stethoscope,
 } from "lucide-react";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,35 +26,47 @@ import { APP_NAME } from "../../utils/brand";
 
 export function AdminProfileMenu() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    if (window.confirm("Are you sure you want to logout?")) {
-      logout();
-    }
+    logout();
+    navigate("/login", { replace: true });
+    toast.success("Logged out successfully.");
   };
 
   const getInitials = () => {
     if (user?.name) {
-      return user.name
-        .split(" ")
-        .map((name) => name[0])
-        .join("")
-        .toUpperCase();
+      const parts = user.name.trim().split(" ").filter(Boolean);
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      }
+      return parts[0] ? parts[0][0].toUpperCase() : "A";
     }
     return "AS";
   };
 
+  const displayName = user?.name || "Aditi Sharma";
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-3 rounded-xl border-l border-gray-200 py-1.5 pl-4 pr-3 transition-all hover:bg-gray-50 dark:border-slate-800 dark:hover:bg-slate-900">
-          <div className="text-right">
-            <p className="text-sm font-medium text-gray-900 dark:text-slate-100">{user?.name || "Aditi Sharma"}</p>
-            <p className="text-xs text-gray-500 dark:text-slate-400">Operations Lead</p>
+        <button
+          type="button"
+          className="group flex items-center gap-2.5 rounded-full border border-slate-200/90 bg-white py-1 pl-3 pr-2 transition-all hover:bg-slate-50 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-850 shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 active:scale-[0.98]"
+          aria-label="Admin profile menu"
+        >
+          <div className="text-right leading-tight hidden sm:block">
+            <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[120px]">
+              {displayName}
+            </p>
+            <p className="text-[10px] font-medium text-teal-600 dark:text-teal-400">
+              Operations Lead
+            </p>
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-600 to-teal-500 text-white shadow-md shadow-cyan-500/20">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-teal-500 to-teal-700 text-xs font-bold text-white shadow-2xs ring-2 ring-white dark:ring-slate-900 shrink-0">
             {getInitials()}
           </div>
+          <ChevronDown className="h-3.5 w-3.5 text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300 transition-transform duration-200" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="mt-2 w-72 rounded-2xl border-gray-200 p-0 shadow-xl dark:border-slate-800 dark:bg-slate-950">

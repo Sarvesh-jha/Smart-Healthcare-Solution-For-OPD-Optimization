@@ -65,6 +65,27 @@ const adminProfileSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const paymentMethodSchema = new mongoose.Schema(
+  {
+    type: {
+      type: String,
+      enum: ["card", "upi"],
+      required: true,
+    },
+    cardHolder: String,
+    cardNumber: String,
+    brand: String,
+    expiry: String,
+    upiId: String,
+    nickname: String,
+    isDefault: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { timestamps: true }
+);
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -99,6 +120,7 @@ const userSchema = new mongoose.Schema(
     patientProfile: patientProfileSchema,
     doctorProfile: doctorProfileSchema,
     adminProfile: adminProfileSchema,
+    paymentMethods: [paymentMethodSchema],
   },
   {
     timestamps: true,

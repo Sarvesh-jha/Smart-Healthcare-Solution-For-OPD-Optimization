@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { 
   TestTube, 
-  Search, 
   Calendar, 
   Clock, 
   MapPin, 
@@ -31,6 +30,7 @@ import {
 import { api } from "../services/ApiService";
 import { formatINR } from "../utils/currency";
 import { toast } from "sonner";
+import { useSearch } from "../context/SearchContext";
 
 interface LabTest {
   id: string;
@@ -70,11 +70,11 @@ const categoryList = [
 ];
 
 export function PatientTestsServices() {
+  const { searchQuery } = useSearch();
   const [tests, setTests] = useState<LabTest[]>([]);
   const [bookings, setBookings] = useState<TestBooking[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Tests");
 
   // Booking Modal State
@@ -159,10 +159,13 @@ export function PatientTestsServices() {
 
   const filteredTests = tests.filter((test) => {
     const matchesCategory = selectedCategory === "All Tests" || test.category.toLowerCase().includes(selectedCategory.toLowerCase().replace(" tests", ""));
+    const q = searchQuery.toLowerCase().trim();
     const matchesSearch =
-      test.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      test.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      test.category.toLowerCase().includes(searchTerm.toLowerCase());
+      !q ||
+      test.name.toLowerCase().includes(q) ||
+      test.description.toLowerCase().includes(q) ||
+      test.category.toLowerCase().includes(q) ||
+      (test.preparation && test.preparation.toLowerCase().includes(q));
     return matchesCategory && matchesSearch;
   });
 
@@ -170,38 +173,25 @@ export function PatientTestsServices() {
 
   return (
     <div className="space-y-6 pb-8">
-      {/* Search & Category Filter Bar */}
-      <div className="space-y-3">
-        <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input
-            type="text"
-            placeholder="Search diagnostic tests by name, biomarker, or scan type..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-11 rounded-lg border-slate-200 bg-white pl-10 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:border-teal-600 focus-visible:ring-teal-500/20 shadow-xs dark:border-slate-800 dark:bg-slate-900"
-          />
-        </div>
-
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {categoryList.map((cat) => {
-            const isActive = selectedCategory === cat;
-            return (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setSelectedCategory(cat)}
-                className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
-                  isActive
-                    ? "bg-teal-600 text-white border border-teal-600 shadow-xs font-semibold"
-                    : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
-                }`}
-              >
-                {cat}
-              </button>
-            );
-          })}
-        </div>
+      {/* Category Filter Chips */}
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {categoryList.map((cat) => {
+          const isActive = selectedCategory === cat;
+          return (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setSelectedCategory(cat)}
+              className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
+                isActive
+                  ? "bg-teal-600 text-white border border-teal-600 shadow-xs font-semibold"
+                  : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+              }`}
+            >
+              {cat}
+            </button>
+          );
+        })}
       </div>
 
       {/* Scheduled / Upcoming Tests */}
