@@ -49,3 +49,26 @@ export function requireRole(...roles) {
     return next();
   };
 }
+
+export async function optionalAuth(req, _res, next) {
+  try {
+    const authorization = req.headers.authorization || "";
+    const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : null;
+
+    if (!token) {
+      return next();
+    }
+
+    const payload = jwt.verify(token, env.jwtSecret);
+    const user = await User.findById(payload.sub);
+
+    if (user) {
+      req.user = user;
+      req.auth = sanitizeUser(user);
+    }
+
+    return next();
+  } catch {
+    return next();
+  }
+}

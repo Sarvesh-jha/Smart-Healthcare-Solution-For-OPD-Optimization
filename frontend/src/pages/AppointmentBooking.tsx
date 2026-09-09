@@ -6,6 +6,7 @@ import {
   Landmark,
   QrCode,
   Smartphone,
+  Star,
   User as UserIcon,
   Video,
 } from "lucide-react";
@@ -155,13 +156,21 @@ export function AppointmentBooking() {
     try {
       setIsBooking(true);
       setBookingError("");
+      const doctorId = selectedDoctor.id || selectedDoctor._id;
+      const formattedDate = selectedDate.toISOString().split("T")[0];
+      const mode = consultationType === "online" ? "Video" : "In-Person";
+
       const response = await appointmentService.book({
-        doctorId: selectedDoctor.id,
+        doctorId,
         consultationType,
+        mode,
         selectedDate: selectedDate.toISOString(),
+        date: formattedDate,
         selectedSlot,
+        timeSlot: selectedSlot,
         reason,
         paymentMethod,
+        status: "confirmed",
       });
       setBookingResult(response.appointment);
       setCurrentStep(5);
@@ -174,7 +183,7 @@ export function AppointmentBooking() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <Card className="border-0 p-6 shadow-sm dark:bg-slate-950">
+      <Card className="border border-slate-200/80 bg-white p-6 shadow-xs dark:bg-slate-900 dark:border-slate-800 rounded-2xl">
         <div className="flex items-center justify-between gap-4">
           {steps.map((step, index) => (
             <div key={step.id} className="flex flex-1 items-center">
@@ -213,7 +222,7 @@ export function AppointmentBooking() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_360px]">
         <div className="space-y-6">
           {currentStep >= 1 && (
-            <Card className="border-0 p-6 shadow-sm dark:bg-slate-950">
+            <Card className="border border-slate-200/80 bg-white p-6 shadow-xs dark:bg-slate-900 dark:border-slate-800 rounded-2xl">
               <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-slate-50">Choose your consultant</h3>
               {doctors.length > 1 && (
                 <div className="mb-4 grid gap-3 md:grid-cols-2">
@@ -242,14 +251,21 @@ export function AppointmentBooking() {
                 <div className="flex-1">
                   <h4 className="font-semibold text-gray-900 dark:text-slate-50">{doctor.name}</h4>
                   <p className="text-sm text-gray-600 dark:text-slate-400">{doctor.specialty}</p>
-                  <p className="text-sm text-gray-500 dark:text-slate-400">{doctor.experience} experience • ⭐ {doctor.rating}</p>
+                  <p className="text-sm text-gray-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
+                    <span>{doctor.experience} experience</span>
+                    <span>•</span>
+                    <span className="inline-flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      {doctor.rating}
+                    </span>
+                  </p>
                 </div>
               </div>
             </Card>
           )}
 
           {currentStep >= 2 && (
-            <Card className="border border-slate-200/80 p-6 shadow-xs bg-white dark:bg-slate-950 dark:border-slate-800">
+            <Card className="border border-slate-200/80 p-6 shadow-xs bg-white dark:bg-slate-900 dark:border-slate-800 rounded-2xl">
               <h3 className="mb-4 text-base font-semibold text-slate-900 dark:text-slate-50">Choose consultation mode</h3>
               <div className="grid gap-4 md:grid-cols-2">
                 <button
@@ -302,7 +318,7 @@ export function AppointmentBooking() {
           )}
 
           {currentStep >= 3 && currentStep < 5 && (
-            <Card className="border border-slate-200/80 p-6 shadow-xs bg-white dark:bg-slate-950 dark:border-slate-800">
+            <Card className="border border-slate-200/80 p-6 shadow-xs bg-white dark:bg-slate-900 dark:border-slate-800 rounded-2xl">
               <h3 className="mb-4 text-base font-semibold text-slate-900 dark:text-slate-50">Select date and slot</h3>
 
               <div className="mb-6 flex justify-center">
@@ -355,7 +371,7 @@ export function AppointmentBooking() {
           )}
 
           {currentStep === 4 && (
-            <Card className="border-0 p-6 shadow-sm dark:bg-slate-950">
+            <Card className="border border-slate-200/80 bg-white p-6 shadow-xs dark:bg-slate-900 dark:border-slate-800 rounded-2xl">
               <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-slate-50">Payment Options</h3>
 
               <div className="grid gap-3 md:grid-cols-2">
@@ -386,23 +402,23 @@ export function AppointmentBooking() {
                 })}
               </div>
 
-              <div className="mt-5 rounded-[1.6rem] border border-gray-200 bg-gray-50 p-5 dark:border-slate-800 dark:bg-slate-900">
+              <div className="mt-5 rounded-2xl border border-slate-200/80 bg-slate-50/70 p-5 dark:border-slate-800 dark:bg-slate-950/60">
                 {paymentMethod === "upi" && (
                   <div className="grid gap-5 lg:grid-cols-[180px_minmax(0,1fr)]">
-                    <div className="grid grid-cols-12 overflow-hidden rounded-[1.5rem] border border-gray-200 bg-white p-3 shadow-sm">
+                    <div className="grid grid-cols-12 overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-xs dark:border-slate-700">
                       {qrPattern.join("").split("").map((cell, index) => (
                         <span key={index} className={`aspect-square ${cell === "1" ? "bg-slate-950" : "bg-white"}`} />
                       ))}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-slate-50">Scan with any UPI app</p>
-                      <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
-                        Use Google Pay, PhonePe, Paytm, or any banking scanner. UPI ID: <span className="font-medium text-gray-900 dark:text-slate-50">pay@medirxcare</span>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">Scan with any UPI app</p>
+                      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                        Use Google Pay, PhonePe, Paytm, or any banking scanner. UPI ID: <span className="font-medium text-slate-900 dark:text-slate-50">pay@medirxcare</span>
                       </p>
                       <input
                         type="text"
                         placeholder="Optional: enter your UPI ID"
-                        className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-white px-4 text-sm outline-none focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-950"
+                        className="mt-4 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-teal-400 dark:focus:ring-teal-500/30"
                       />
                     </div>
                   </div>
@@ -411,28 +427,29 @@ export function AppointmentBooking() {
                 {paymentMethod === "card" && (
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Card Number</label>
+                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Card Number</label>
                       <input
                         type="text"
                         placeholder="1234 5678 9012 3456"
-                        className="mt-1 h-12 w-full rounded-2xl border border-gray-200 bg-white px-4 text-sm outline-none focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-950"
+                        className="mt-1 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-teal-400 dark:focus:ring-teal-500/30"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Expiry Date</label>
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Expiry Date</label>
                         <input
                           type="text"
                           placeholder="MM/YY"
-                          className="mt-1 h-12 w-full rounded-2xl border border-gray-200 bg-white px-4 text-sm outline-none focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-950"
+                          className="mt-1 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-teal-400 dark:focus:ring-teal-500/30"
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">CVV</label>
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">CVV</label>
                         <input
-                          type="text"
-                          placeholder="123"
-                          className="mt-1 h-12 w-full rounded-2xl border border-gray-200 bg-white px-4 text-sm outline-none focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-950"
+                          type="password"
+                          placeholder="•••"
+                          maxLength={4}
+                          className="mt-1 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-teal-400 dark:focus:ring-teal-500/30"
                         />
                       </div>
                     </div>
@@ -445,7 +462,7 @@ export function AppointmentBooking() {
                       <button
                         key={wallet}
                         type="button"
-                        className="rounded-2xl border border-gray-200 bg-white px-4 py-4 text-left text-sm font-medium text-gray-900 transition-all hover:border-cyan-300 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        className="rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-left text-sm font-medium text-slate-900 transition-all hover:border-teal-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-teal-600"
                       >
                         {wallet}
                       </button>
@@ -455,14 +472,14 @@ export function AppointmentBooking() {
 
                 {paymentMethod === "netbanking" && (
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <select className="h-12 rounded-2xl border border-gray-200 bg-white px-4 text-sm outline-none focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-950">
+                    <select className="h-11 rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-teal-400 dark:focus:ring-teal-500/30">
                       <option>Choose your bank</option>
                       <option>HDFC Bank</option>
                       <option>ICICI Bank</option>
                       <option>State Bank of India</option>
                       <option>Axis Bank</option>
                     </select>
-                    <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-3 text-sm text-gray-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-400">
+                    <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-3 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
                       Additional online banking options will be available after selecting your bank.
                     </div>
                   </div>
@@ -530,8 +547,8 @@ export function AppointmentBooking() {
           )}
         </div>
 
-        <Card className="sticky top-6 h-fit border-0 p-6 shadow-sm dark:bg-slate-950">
-          <h3 className="mb-4 font-semibold text-gray-900 dark:text-slate-50">Booking Summary</h3>
+        <Card className="sticky top-6 h-fit border border-slate-200/80 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-slate-900 rounded-2xl">
+          <h3 className="mb-4 font-semibold text-slate-900 dark:text-slate-50">Booking Summary</h3>
 
           <div className="space-y-4">
             <div className="border-b border-gray-100 pb-4 dark:border-slate-800">

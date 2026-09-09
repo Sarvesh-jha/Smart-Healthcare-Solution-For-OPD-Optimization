@@ -84,7 +84,7 @@ export function DoctorDirectory() {
           {filteredDoctors.map((doctor) => (
             <Card
               key={doctor.id}
-              className="group border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-teal-500/40 hover:shadow-sm rounded-xl dark:bg-slate-900 dark:border-slate-800"
+              className="group border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-teal-500/40 hover:shadow-sm rounded-xl dark:bg-[#131926] dark:border-slate-800/80"
             >
               <div className="space-y-4">
                 <div className="flex items-start gap-3.5">
@@ -92,11 +92,11 @@ export function DoctorDirectory() {
                     {doctor.avatar}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-slate-900 dark:text-slate-50 text-base leading-snug">{doctor.name}</h3>
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-base leading-snug">{doctor.name}</h3>
                     <p className="text-xs font-medium text-teal-700 dark:text-teal-400 mt-0.5">{doctor.specialty}</p>
                     <div className="mt-1.5 flex items-center gap-1">
                       <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                      <span className="text-xs font-semibold text-slate-900 dark:text-slate-50">{doctor.rating}</span>
+                      <span className="text-xs font-semibold text-slate-900 dark:text-slate-100">{doctor.rating}</span>
                       <span className="text-xs text-slate-400 dark:text-slate-400">({doctor.reviews} reviews)</span>
                     </div>
                   </div>
@@ -118,19 +118,19 @@ export function DoctorDirectory() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
-                  <div className="rounded-lg bg-slate-50 border border-slate-100 p-2.5 dark:bg-slate-800/60">
+                  <div className="rounded-lg bg-slate-50 border border-slate-100 p-2.5 dark:bg-slate-800/60 dark:border-slate-700/60">
                     <div className="mb-0.5 flex items-center gap-1.5">
-                      <Video className="h-3.5 w-3.5 text-teal-600" />
+                      <Video className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
                       <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Online</p>
                     </div>
-                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">{formatINR(doctor.onlineFee)}</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{formatINR(doctor.onlineFee)}</p>
                   </div>
-                  <div className="rounded-lg bg-slate-50 border border-slate-100 p-2.5 dark:bg-slate-800/60">
+                  <div className="rounded-lg bg-slate-50 border border-slate-100 p-2.5 dark:bg-slate-800/60 dark:border-slate-700/60">
                     <div className="mb-0.5 flex items-center gap-1.5">
-                      <UserIcon className="h-3.5 w-3.5 text-emerald-600" />
+                      <UserIcon className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                       <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">In-Person</p>
                     </div>
-                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">{formatINR(doctor.offlineFee)}</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{formatINR(doctor.offlineFee)}</p>
                   </div>
                 </div>
 
@@ -147,7 +147,7 @@ export function DoctorDirectory() {
       )}
 
       {!loading && filteredDoctors.length === 0 && (
-        <Card className="border border-slate-200/80 bg-white p-10 text-center shadow-xs rounded-xl dark:bg-slate-900">
+        <Card className="border border-slate-200/80 bg-white p-10 text-center shadow-xs rounded-xl dark:bg-[#131926] dark:border-slate-800/80">
           <p className="text-sm font-medium text-slate-600 dark:text-slate-400">No doctors match your current search or specialty filter.</p>
         </Card>
       )}

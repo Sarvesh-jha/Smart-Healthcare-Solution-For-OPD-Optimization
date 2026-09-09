@@ -11,6 +11,13 @@ const patientProfileSchema = new mongoose.Schema(
       default: 0,
     },
     lastVisit: Date,
+    vitals: {
+      bloodPressure: { type: String, default: null },
+      bloodSugar: { type: String, default: null },
+      cholesterol: { type: String, default: null },
+      heartRate: { type: String, default: null },
+      recordedAt: { type: Date, default: null },
+    },
   },
   { _id: false },
 );

@@ -69,7 +69,7 @@ export async function buildQueueStatus(doctorId, options = {}) {
     totalToday: entries.length,
     completed: completed.length,
     estimatedWaitTime: `${estimatedWaitMinutes} mins`,
-    waitingList: waiting.slice(0, 5).map((entry) => ({
+    waitingList: waiting.slice(0, 50).map((entry) => ({
       token: entry.token,
       name: entry.patient?.name || "Patient",
       reason: entry.reason,
@@ -138,10 +138,14 @@ router.get("/status", authRequired, async (req, res) => {
       });
     }
 
+    const targetDate = req.query.date
+      ? new Date(req.query.date)
+      : (patientAppointment?.dateTime || new Date());
+
     return res.json(
       await buildQueueStatus(doctorId, {
         patientId: req.user.role === "patient" ? req.user._id : null,
-        queueDate: patientAppointment?.dateTime || new Date(),
+        queueDate: targetDate,
         appointment: patientAppointment,
       }),
     );

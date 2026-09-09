@@ -4,8 +4,11 @@ import { z } from "zod";
 import { authRequired, requireRole } from "../middleware/auth.js";
 import { User } from "../models/User.js";
 import { getInitials, serializePatient } from "../utils/helpers.js";
+import { handleGetReports } from "./reports.routes.js";
 
 const router = express.Router();
+
+router.get("/lab-reports", authRequired, handleGetReports);
 
 const createPatientSchema = z.object({
   name: z.string().min(2),

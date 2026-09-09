@@ -1,6 +1,8 @@
+import http from "http";
 import { createApp } from "./app.js";
 import { connectDatabase } from "./config/database.js";
 import { env } from "./config/env.js";
+import { initSocket } from "./config/socket.js";
 import { seedDemoData } from "./utils/seedDemoData.js";
 
 async function start() {
@@ -9,7 +11,10 @@ async function start() {
     await seedDemoData();
 
     const app = createApp();
-    app.listen(env.port, () => {
+    const httpServer = http.createServer(app);
+    initSocket(httpServer);
+
+    httpServer.listen(env.port, () => {
       console.log(`MEDIrxCARE backend listening on port ${env.port}`);
     });
   } catch (error) {

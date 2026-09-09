@@ -16,10 +16,13 @@ export function formatDateLabel(date) {
 }
 
 export function formatTimeLabel(date) {
-  return new Intl.DateTimeFormat("en-IN", {
+  const formatted = new Intl.DateTimeFormat("en-IN", {
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   }).format(date);
+
+  return formatted.replace(/\s*(am|pm)/i, (match) => ` ${match.trim().toUpperCase()}`).trim();
 }
 
 export function formatRelativeTime(date) {
@@ -114,13 +117,24 @@ export function serializePatient(user) {
 }
 
 export function serializeAppointment(appointment) {
+  const doctorId = appointment.doctor?._id?.toString() || (typeof appointment.doctor === "string" ? appointment.doctor : appointment.doctor?.toString?.() || "");
+  const patientId = appointment.patient?._id?.toString() || (typeof appointment.patient === "string" ? appointment.patient : appointment.patient?.toString?.() || "");
+  const patientName = appointment.patient?.name || (typeof appointment.patient === "string" ? "" : "");
+  const doctorName = appointment.doctor?.name || (typeof appointment.doctor === "string" ? "" : "");
+
   return {
     id: appointment._id.toString(),
-    doctor: appointment.doctor?.name || "",
-    patient: appointment.patient?.name || "",
+    _id: appointment._id.toString(),
+    doctor: doctorName,
+    doctorId,
+    patient: patientName,
+    patientId,
+    patientName,
     specialty: appointment.doctor?.doctorProfile?.specialization || "General Physician",
     date: formatDateLabel(appointment.dateTime),
+    dateISO: appointment.dateTime?.toISOString?.() ? appointment.dateTime.toISOString().split("T")[0] : null,
     time: formatTimeLabel(appointment.dateTime),
+    timeSlot: formatTimeLabel(appointment.dateTime),
     dateTime: appointment.dateTime?.toISOString?.() || null,
     type: appointment.type === "online" ? "Video Consultation" : "In-Person",
     mode: appointment.type === "online" ? "Video" : "In-Person",

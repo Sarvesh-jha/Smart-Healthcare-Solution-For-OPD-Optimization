@@ -24,10 +24,10 @@ export function Sidebar({ navigation, onLogout }: SidebarProps) {
   const location = useLocation();
 
   return (
-    <aside className="hidden w-64 shrink-0 border-r border-slate-200/80 bg-white lg:flex lg:flex-col dark:border-slate-800 dark:bg-slate-950">
-      <div className="border-b border-slate-200/80 p-5 dark:border-slate-800">
+    <aside className="hidden w-64 shrink-0 border-r border-slate-200/80 bg-white lg:flex lg:flex-col dark:border-slate-800/80 dark:bg-[#0E1420]">
+      <div className="border-b border-slate-200/80 p-5 dark:border-slate-800/80">
         <Link to="/" className="group flex items-center gap-3 transition-opacity hover:opacity-90">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 border border-slate-200/80 shadow-xs dark:bg-slate-900 dark:border-slate-700">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 border border-slate-200/80 shadow-xs dark:bg-slate-900/90 dark:border-slate-800">
             <PulseLogo className="h-6 w-6" />
           </div>
           <div>
@@ -48,8 +48,8 @@ export function Sidebar({ navigation, onLogout }: SidebarProps) {
               to={item.path}
               className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                 isActive 
-                  ? "bg-teal-50/90 text-teal-900 font-medium dark:bg-teal-950/40 dark:text-teal-200" 
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900/60 dark:hover:text-slate-100"
+                  ? "bg-teal-50/90 text-teal-900 font-medium dark:bg-teal-950/50 dark:text-teal-200 border-l-2 border-teal-600 dark:border-teal-400" 
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100"
               }`}
             >
               <Icon className={`w-4 h-4 transition-colors ${isActive ? "text-teal-600 dark:text-teal-400" : "text-slate-400 group-hover:text-slate-600 dark:text-slate-500"}`} />
@@ -59,13 +59,13 @@ export function Sidebar({ navigation, onLogout }: SidebarProps) {
         })}
       </nav>
 
-      <div className="border-t border-slate-200/80 p-3 dark:border-slate-800">
+      <div className="border-t border-slate-200/80 p-3 dark:border-slate-800/80">
         <Button 
           variant="ghost" 
-          className="w-full justify-start gap-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 text-sm h-10 dark:text-slate-400 dark:hover:bg-slate-900"
+          className="w-full justify-start gap-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 text-sm h-10 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-200"
           onClick={onLogout}
         >
-          <LogOut className="w-4 h-4 text-slate-400" />
+          <LogOut className="w-4 h-4 text-slate-400 dark:text-slate-400" />
           <span>Sign Out</span>
         </Button>
       </div>

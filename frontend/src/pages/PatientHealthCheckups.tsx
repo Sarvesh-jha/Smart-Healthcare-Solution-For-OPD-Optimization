@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Heart, Calendar, Clock, CheckCircle, ArrowRight, TrendingUp, Sparkles, AlertCircle, ShieldCheck, Plus } from "lucide-react";
+import { Heart, Calendar, Clock, CheckCircle, ArrowRight, TrendingUp, AlertCircle, ShieldCheck, Plus } from "lucide-react";
 import { Card } from "../components/common/Card";
 import { Button } from "../components/common/Button";
 import { Badge } from "../components/common/Badge";
@@ -55,12 +55,10 @@ export function PatientHealthCheckups() {
   const [bookings, setBookings] = useState<CheckupBooking[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Booking Modal State
   const [selectedPackage, setSelectedPackage] = useState<CheckupPackage | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form Fields
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState(tomorrow);
   const [selectedSlot, setSelectedSlot] = useState("09:30 AM");

@@ -9,7 +9,6 @@ import {
   Home, 
   Building2, 
   ShoppingBag, 
-  Sparkles,
   ArrowRight,
   Plus
 } from "lucide-react";
@@ -77,12 +76,10 @@ export function PatientTestsServices() {
 
   const [selectedCategory, setSelectedCategory] = useState("All Tests");
 
-  // Booking Modal State
   const [bookingTests, setBookingTests] = useState<LabTest[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form Fields
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState(tomorrow);
   const [selectedSlot, setSelectedSlot] = useState("09:00 AM");

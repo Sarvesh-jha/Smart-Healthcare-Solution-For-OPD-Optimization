@@ -44,40 +44,40 @@
 
 .dark {
   color-scheme: dark;
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --background: #0B0F17;
+  --foreground: #F8FAFC;
+  --card: #131926;
+  --card-foreground: #F8FAFC;
+  --popover: #131926;
+  --popover-foreground: #F8FAFC;
+  --primary: #14B8A6;
+  --primary-foreground: #FFFFFF;
+  --secondary: #1E293B;
+  --secondary-foreground: #F8FAFC;
+  --muted: #161F30;
+  --muted-foreground: #94A3B8;
+  --accent: #16262B;
+  --accent-foreground: #2DD4BF;
+  --destructive: #F43F5E;
+  --destructive-foreground: #FFFFFF;
+  --border: #1E293B;
+  --input: #1E293B;
+  --input-background: #131926;
+  --switch-background: #334155;
+  --ring: #14B8A6;
+  --chart-1: #14B8A6;
+  --chart-2: #2DD4BF;
+  --chart-3: #38BDF8;
+  --chart-4: #34D399;
+  --chart-5: #818CF8;
+  --sidebar: #0E1420;
+  --sidebar-foreground: #F8FAFC;
+  --sidebar-primary: #14B8A6;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #16262B;
+  --sidebar-accent-foreground: #2DD4BF;
+  --sidebar-border: #1E293B;
+  --sidebar-ring: #14B8A6;
 }
 
 @theme inline {
@@ -185,50 +185,66 @@
 }
 
 @layer utilities {
-  .dark .bg-white {
-    background-color: #0f172a !important;
+  /* Elevated Dark Mode Surface Fallbacks (applies only when no explicit dark:bg- is present) */
+  .dark .bg-white:not([class*='dark:bg-']) {
+    background-color: #131926;
   }
 
-  .dark .bg-gray-50 {
-    background-color: #111827 !important;
+  .dark .bg-gray-50:not([class*='dark:bg-']),
+  .dark .bg-slate-50:not([class*='dark:bg-']) {
+    background-color: #0E1524;
   }
 
-  .dark .bg-gray-100 {
-    background-color: #1f2937 !important;
+  .dark .bg-gray-100:not([class*='dark:bg-']),
+  .dark .bg-slate-100:not([class*='dark:bg-']) {
+    background-color: #1E293B;
   }
 
-  .dark .border-gray-100,
-  .dark .border-gray-200,
-  .dark .border-gray-300 {
-    border-color: rgba(148, 163, 184, 0.18) !important;
+  /* Subtle Hairline Border Fallbacks */
+  .dark .border-gray-100:not([class*='dark:border-']),
+  .dark .border-gray-200:not([class*='dark:border-']),
+  .dark .border-gray-300:not([class*='dark:border-']),
+  .dark .border-slate-100:not([class*='dark:border-']),
+  .dark .border-slate-200:not([class*='dark:border-']),
+  .dark .border-slate-300:not([class*='dark:border-']) {
+    border-color: #1E293B;
   }
 
-  .dark .text-gray-900 {
-    color: #f8fafc !important;
+  /* High-Contrast Typography Fallbacks */
+  .dark .text-gray-900:not([class*='dark:text-']),
+  .dark .text-slate-900:not([class*='dark:text-']) {
+    color: #F8FAFC;
   }
 
-  .dark .text-gray-800 {
-    color: #e2e8f0 !important;
+  .dark .text-gray-800:not([class*='dark:text-']),
+  .dark .text-slate-800:not([class*='dark:text-']) {
+    color: #E2E8F0;
   }
 
-  .dark .text-gray-700 {
-    color: #cbd5e1 !important;
+  .dark .text-gray-700:not([class*='dark:text-']),
+  .dark .text-slate-700:not([class*='dark:text-']) {
+    color: #CBD5E1;
   }
 
-  .dark .text-gray-600 {
-    color: #94a3b8 !important;
+  .dark .text-gray-600:not([class*='dark:text-']),
+  .dark .text-slate-600:not([class*='dark:text-']) {
+    color: #94A3B8;
   }
 
-  .dark .text-gray-500,
-  .dark .text-gray-400 {
-    color: #64748b !important;
+  .dark .text-gray-500:not([class*='dark:text-']),
+  .dark .text-slate-500:not([class*='dark:text-']),
+  .dark .text-gray-400:not([class*='dark:text-']) {
+    color: #94A3B8;
   }
 
-  .dark .hover\:bg-gray-50:hover {
-    background-color: #111827 !important;
+  /* Hover State Fallbacks */
+  .dark .hover\:bg-gray-50:not([class*='dark:hover:bg-']):hover,
+  .dark .hover\:bg-slate-50:not([class*='dark:hover:bg-']):hover {
+    background-color: #1A2234;
   }
 
-  .dark .hover\:bg-gray-100:hover {
-    background-color: #1f2937 !important;
+  .dark .hover\:bg-gray-100:not([class*='dark:hover:bg-']):hover,
+  .dark .hover\:bg-slate-100:not([class*='dark:hover:bg-']):hover {
+    background-color: #1E293B;
   }
 }

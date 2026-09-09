@@ -9,6 +9,7 @@ import {
   ChevronDown,
   Users,
   Stethoscope,
+  CreditCard,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -113,6 +114,13 @@ export function AdminProfileMenu() {
               <Link to="/admin/analytics" className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5">
                 <BarChart3 className="w-4 h-4 text-gray-500" />
                 <span className="text-sm text-gray-700 dark:text-slate-200">Analytics</span>
+                <ChevronRight className="ml-auto w-4 h-4 text-gray-400" />
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/admin/payments" className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5">
+                <CreditCard className="w-4 h-4 text-gray-500" />
+                <span className="text-sm text-gray-700 dark:text-slate-200">Payments & Revenue</span>
                 <ChevronRight className="ml-auto w-4 h-4 text-gray-400" />
               </Link>
             </DropdownMenuItem>

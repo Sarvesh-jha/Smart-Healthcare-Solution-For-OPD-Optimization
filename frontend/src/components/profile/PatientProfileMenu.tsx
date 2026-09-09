@@ -37,13 +37,13 @@ export function PatientProfileMenu() {
       if (parts.length >= 2) {
         return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
       }
-      return parts[0] ? parts[0][0].toUpperCase() : "S";
+      return parts[0] ? parts[0][0].toUpperCase() : "P";
     }
-    return "SJ";
+    return "P";
   };
 
-  const displayName = user?.name || "Rohan Verma";
-  const displayEmail = user?.email || "rohan.verma@example.com";
+  const displayName = user?.name || "Patient";
+  const displayEmail = user?.email || "";
 
   return (
     <DropdownMenu>

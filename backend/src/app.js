@@ -1,5 +1,7 @@
 import cors from "cors";
 import express from "express";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
 import morgan from "morgan";
 import { env } from "./config/env.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
@@ -15,10 +17,13 @@ import videoRoutes from "./routes/video.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import checkupsRoutes from "./routes/checkups.routes.js";
 import testsRoutes from "./routes/tests.routes.js";
+import reportsRoutes from "./routes/reports.routes.js";
 
 export function createApp() {
   const app = express();
   const allowedOrigins = env.clientOrigin.split(",").map((origin) => origin.trim());
+
+  app.use(helmet());
 
   app.use(
     cors({
@@ -41,6 +46,17 @@ export function createApp() {
     }),
   );
   app.use(express.json());
+
+  if (env.nodeEnv !== "test") {
+    const apiLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 500,
+      standardHeaders: true,
+      legacyHeaders: false,
+      message: { message: "Too many requests from this IP, please try again later." },
+    });
+    app.use("/api/", apiLimiter);
+  }
 
   if (env.nodeEnv !== "test") {
     app.use(morgan("dev"));
@@ -78,6 +94,8 @@ export function createApp() {
   app.use("/api/user", userRoutes);
   app.use("/api/checkups", checkupsRoutes);
   app.use("/api/tests", testsRoutes);
+  app.use("/api/reports", reportsRoutes);
+  app.use("/api/patient/lab-reports", reportsRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

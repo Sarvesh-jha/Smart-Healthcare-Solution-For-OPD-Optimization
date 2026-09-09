@@ -70,6 +70,21 @@ export class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    return this.children;
+    return this.props.children || (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-gray-100 p-8 text-center space-y-6">
+          <h2 className="text-2xl font-bold text-gray-900">Page Not Found</h2>
+          <p className="text-gray-600 text-sm leading-relaxed">
+            The page you are looking for does not exist or has been moved.
+          </p>
+          <Button 
+            onClick={() => window.location.href = "/"}
+            className="w-full bg-teal-600 hover:bg-teal-700 text-white h-12 rounded-xl shadow-md"
+          >
+            Back to Home
+          </Button>
+        </div>
+      </div>
+    );
   }
 }

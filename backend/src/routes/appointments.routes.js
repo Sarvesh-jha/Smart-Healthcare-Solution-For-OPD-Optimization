@@ -11,11 +11,16 @@ const router = express.Router();
 
 const bookAppointmentSchema = z.object({
   doctorId: z.string().min(1),
-  consultationType: z.enum(["online", "offline"]),
-  selectedDate: z.string().min(1),
-  selectedSlot: z.string().min(1),
-  reason: z.string().min(2).default("General consultation"),
+  consultationType: z.enum(["online", "offline"]).optional(),
+  mode: z.enum(["online", "offline", "In-Person", "in-person", "Video", "video"]).optional(),
+  selectedDate: z.string().optional(),
+  date: z.string().optional(),
+  selectedSlot: z.string().optional(),
+  timeSlot: z.string().optional(),
+  reason: z.string().min(1).default("General consultation"),
   paymentMethod: z.enum(["upi", "card", "wallet", "netbanking"]).default("upi"),
+  status: z.enum(["pending", "confirmed", "scheduled", "ongoing", "completed", "cancelled"]).default("confirmed"),
+  patientId: z.string().optional(),
 });
 
 async function findAuthorizedAppointment(appointmentId, currentUser) {
@@ -36,15 +41,60 @@ async function findAuthorizedAppointment(appointmentId, currentUser) {
   return isDoctor || isPatient ? appointment : null;
 }
 
+async function getDoctorAppointmentsQuery(doctorId, options = {}) {
+  const { date, view, status } = options;
+  const filters = { doctor: doctorId };
+
+  if (status) {
+    filters.status = status;
+  } else {
+    filters.status = { $ne: "cancelled" };
+  }
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+
+  if (view === "all") {
+    // Return all scheduled and confirmed appointments
+  } else if (view === "upcoming") {
+    // Return all appointments from the start of today onwards
+    filters.dateTime = { $gte: todayStart };
+  } else if (view === "tomorrow") {
+    const tomorrowStart = new Date(todayStart);
+    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+    const tomorrowEnd = new Date(todayEnd);
+    tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
+    filters.dateTime = { $gte: tomorrowStart, $lte: tomorrowEnd };
+  } else if (date) {
+    const targetDate = new Date(date);
+    const dayStart = new Date(targetDate);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(targetDate);
+    dayEnd.setHours(23, 59, 59, 999);
+    filters.dateTime = { $gte: dayStart, $lte: dayEnd };
+  } else {
+    // Default to today
+    filters.dateTime = { $gte: todayStart, $lte: todayEnd };
+  }
+
+  return Appointment.find(filters)
+    .populate("patient")
+    .populate("doctor")
+    .sort({ dateTime: 1 });
+}
+
 router.get("/upcoming", authRequired, async (req, res) => {
   try {
-    const now = new Date();
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
     const filters =
       req.user.role === "patient"
-        ? { patient: req.user._id, dateTime: { $gte: now }, status: { $ne: "cancelled" } }
+        ? { patient: req.user._id, dateTime: { $gte: startOfToday }, status: { $ne: "cancelled" } }
         : req.user.role === "doctor"
-          ? { doctor: req.user._id, dateTime: { $gte: now }, status: { $ne: "cancelled" } }
-          : { dateTime: { $gte: now }, status: { $ne: "cancelled" } };
+          ? { doctor: req.user._id, dateTime: { $gte: startOfToday }, status: { $ne: "cancelled" } }
+          : { dateTime: { $gte: startOfToday }, status: { $ne: "cancelled" } };
 
     const appointments = await Appointment.find(filters)
       .populate("patient")
@@ -58,22 +108,27 @@ router.get("/upcoming", authRequired, async (req, res) => {
   }
 });
 
+router.get("/doctor", authRequired, requireRole("doctor", "admin"), async (req, res) => {
+  try {
+    const doctorId = req.user.role === "doctor" ? req.user._id : req.query.doctorId;
+    if (!doctorId) {
+      return res.status(400).json({ message: "Doctor ID is required." });
+    }
+    const appointments = await getDoctorAppointmentsQuery(doctorId, req.query);
+    return res.json(appointments.map(serializeAppointment));
+  } catch (error) {
+    console.error("Failed to fetch doctor appointments.", error);
+    return res.status(500).json({ message: "Failed to fetch doctor appointments." });
+  }
+});
+
 router.get("/doctor/today", authRequired, requireRole("doctor", "admin"), async (req, res) => {
   try {
     const doctorId = req.user.role === "doctor" ? req.user._id : req.query.doctorId;
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date();
-    end.setHours(23, 59, 59, 999);
-
-    const appointments = await Appointment.find({
-      doctor: doctorId,
-      dateTime: { $gte: start, $lte: end },
-    })
-      .populate("patient")
-      .populate("doctor")
-      .sort({ dateTime: 1 });
-
+    if (!doctorId) {
+      return res.status(400).json({ message: "Doctor ID is required." });
+    }
+    const appointments = await getDoctorAppointmentsQuery(doctorId, req.query);
     return res.json(appointments.map(serializeAppointment));
   } catch (error) {
     console.error("Failed to fetch today's doctor appointments.", error);
@@ -104,21 +159,55 @@ router.post("/", authRequired, async (req, res) => {
       return res.status(400).json({ message: "Invalid appointment data.", issues: parsed.error.flatten() });
     }
 
-    const { doctorId, consultationType, selectedDate, selectedSlot, reason, paymentMethod } = parsed.data;
+    const {
+      doctorId,
+      consultationType: rawType,
+      mode: rawMode,
+      selectedDate,
+      date: rawDate,
+      selectedSlot,
+      timeSlot: rawSlot,
+      reason,
+      paymentMethod,
+      status: requestedStatus,
+      patientId: explicitPatientId,
+    } = parsed.data;
+
+    const consultationType = rawType || (rawMode && ["in-person", "In-Person", "offline"].includes(rawMode) ? "offline" : "online");
+    const dateValue = selectedDate || rawDate;
+    const slotValue = selectedSlot || rawSlot;
+
+    if (!dateValue || !slotValue) {
+      return res.status(400).json({ message: "Both date and time slot are required for booking." });
+    }
+
     const doctor = await User.findOne({ _id: doctorId, role: "doctor" });
 
     if (!doctor) {
       return res.status(404).json({ message: "Doctor not found." });
     }
 
-    const patientId = req.user.role === "patient" ? req.user._id : req.body.patientId;
+    const patientId = req.user.role === "patient" ? req.user._id : (explicitPatientId || req.user._id);
     const patient = await User.findOne({ _id: patientId, role: "patient" });
 
     if (!patient) {
       return res.status(404).json({ message: "Patient not found." });
     }
 
-    const dateTime = createAppointmentDateTime(selectedDate, selectedSlot);
+    const dateTime = createAppointmentDateTime(dateValue, slotValue);
+
+    const existingConflict = await Appointment.findOne({
+      doctor: doctor._id,
+      dateTime,
+      status: { $in: ["confirmed", "scheduled", "ongoing"] },
+    });
+
+    if (existingConflict && existingConflict.patient?.toString() !== patientId.toString()) {
+      return res.status(409).json({
+        message: "Doctor slot unavailable for the selected time. Please choose another slot.",
+      });
+    }
+
     const fee =
       consultationType === "online"
         ? Math.min(doctor.doctorProfile?.onlineFee || 499, 499)
@@ -129,7 +218,7 @@ router.post("/", authRequired, async (req, res) => {
       doctor: doctor._id,
       reason,
       type: consultationType,
-      status: "confirmed",
+      status: requestedStatus || "confirmed",
       fee,
       paymentMethod,
       paymentStatus: "paid",
@@ -170,7 +259,7 @@ router.post("/", authRequired, async (req, res) => {
     await Notification.create([
       {
         recipient: patient._id,
-        message: `Appointment booked with ${doctor.name} on ${selectedSlot}.`,
+        message: `Appointment booked with ${doctor.name} on ${slotValue}.`,
         type: "appointment",
       },
       {

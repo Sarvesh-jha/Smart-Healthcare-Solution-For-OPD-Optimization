@@ -5,8 +5,9 @@ export const dashboardService = {
     return api.get("/dashboard/patient");
   },
 
-  async getDoctorDashboardData() {
-    return api.get("/dashboard/doctor");
+  async getDoctorDashboardData(date?: string) {
+    const query = date ? `?date=${encodeURIComponent(date)}` : "";
+    return api.get(`/dashboard/doctor${query}`);
   },
 
   async getAdminStats() {

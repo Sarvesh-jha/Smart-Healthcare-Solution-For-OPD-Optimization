@@ -1,247 +1,200 @@
-import { Pill, Clock, AlertTriangle, Info, Lightbulb, ShieldAlert } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Pill, Clock, AlertTriangle, Info, Lightbulb, ShieldAlert, Calendar, Plus, User } from "lucide-react";
 import { Card } from "../components/common/Card";
 import { Badge } from "../components/common/Badge";
+import { Button } from "../components/common/Button";
 import { useSearch } from "../context/SearchContext";
+import { useNavigate } from "react-router";
+import { api } from "../services/ApiService";
+import { LoadingSpinner } from "../components/common/LoadingSpinner";
 
-const medicines = [
-  {
-    id: 1,
-    name: "Aspirin",
-    dosage: "100mg",
-    frequency: "Once daily",
-    duration: "30 days",
-    timing: "After breakfast",
-    instructions: "Take with food",
-    color: "blue"
-  },
-  {
-    id: 2,
-    name: "Metformin",
-    dosage: "500mg",
-    frequency: "Twice daily",
-    duration: "60 days",
-    timing: "After meals",
-    instructions: "Do not skip doses",
-    color: "green"
-  },
-  {
-    id: 3,
-    name: "Lisinopril",
-    dosage: "10mg",
-    frequency: "Once daily",
-    duration: "90 days",
-    timing: "Morning",
-    instructions: "Take at same time daily",
-    color: "purple"
-  }
-];
-
-const dosageSchedule = [
-  { time: "08:00 AM", medicines: ["Aspirin 100mg", "Lisinopril 10mg"], meal: "After Breakfast" },
-  { time: "01:00 PM", medicines: ["Metformin 500mg"], meal: "After Lunch" },
-  { time: "08:00 PM", medicines: ["Metformin 500mg"], meal: "After Dinner" }
-];
-
-const sideEffects = [
-  { medicine: "Aspirin", effects: ["Nausea", "Upset stomach", "Heartburn"], severity: "Mild" },
-  { medicine: "Metformin", effects: ["Diarrhea", "Nausea", "Stomach pain"], severity: "Common" },
-  { medicine: "Lisinopril", effects: ["Dizziness", "Headache", "Dry cough"], severity: "Moderate" }
-];
+interface PrescriptionItem {
+  id: string;
+  doctor: string;
+  specialty: string;
+  date: string;
+  reason: string;
+  notes: string;
+  status: string;
+}
 
 const avoidList = [
-  "Alcohol consumption",
-  "Grapefruit juice",
-  "High-sodium foods",
-  "Excessive caffeine",
-  "Over-the-counter pain relievers without consultation"
+  "Alcohol consumption with active medications",
+  "High-sodium processed meals for hypertension",
+  "Excessive caffeine intake during treatment",
+  "Over-the-counter NSAID painkillers without physician consultation",
 ];
 
 const preventionTips = [
-  "Take medications at the same time every day",
-  "Keep a medication diary or use reminder apps",
-  "Store medicines in a cool, dry place",
-  "Never share your medications with others",
-  "Complete the full course even if you feel better",
-  "Report any unusual symptoms to your doctor immediately"
+  "Take prescribed medications at the same time every day",
+  "Never alter dosage or cease antibiotic regimens prematurely",
+  "Keep an active medication log in case of adverse drug reactions",
+  "Store medications in a cool, moisture-free environment away from sunlight",
 ];
 
 export function PrescriptionInsight() {
+  const navigate = useNavigate();
   const { searchQuery } = useSearch();
+  const [prescriptions, setPrescriptions] = useState<PrescriptionItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchPrescriptions = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get<{ success: boolean; prescriptions: PrescriptionItem[] }>("/user/prescriptions");
+        if (isMounted && res?.prescriptions) {
+          setPrescriptions(res.prescriptions);
+        }
+      } catch (err) {
+        console.warn("Failed to load prescriptions:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchPrescriptions();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const q = searchQuery.toLowerCase().trim();
 
-  const filteredMedicines = medicines.filter((medicine) => {
+  const filteredPrescriptions = prescriptions.filter((item) => {
     if (!q) return true;
     return (
-      medicine.name.toLowerCase().includes(q) ||
-      medicine.instructions.toLowerCase().includes(q) ||
-      medicine.dosage.toLowerCase().includes(q) ||
-      medicine.frequency.toLowerCase().includes(q) ||
-      medicine.timing.toLowerCase().includes(q)
+      item.doctor.toLowerCase().includes(q) ||
+      item.specialty.toLowerCase().includes(q) ||
+      item.reason.toLowerCase().includes(q) ||
+      item.notes.toLowerCase().includes(q)
     );
   });
 
+  const latestPrescription = filteredPrescriptions[0];
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      {/* Prescription Details */}
-      <Card className="p-6 border-0 shadow-sm bg-gradient-to-r from-cyan-600 to-teal-500 text-white">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-cyan-50 mb-1">Prescribed by</p>
-            <h3 className="text-xl font-semibold mb-1">Dr. Aarav Mehta</h3>
-            <p className="text-cyan-50">Cardiologist</p>
+      {/* Header Banner */}
+      {latestPrescription && (
+        <Card className="p-6 border border-teal-500/30 shadow-sm bg-gradient-to-r from-teal-700 to-emerald-600 text-white rounded-2xl">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+            <div>
+              <p className="text-teal-100 text-xs uppercase tracking-wider mb-1 font-semibold">Latest Attending Doctor</p>
+              <h3 className="text-xl font-semibold mb-0.5">{latestPrescription.doctor}</h3>
+              <p className="text-teal-100 text-xs">{latestPrescription.specialty} • MEDIrxCARE Hospital</p>
+            </div>
+            <div className="text-left sm:text-right">
+              <p className="text-teal-100 text-xs uppercase tracking-wider mb-1 font-semibold">Consultation Date</p>
+              <p className="text-base sm:text-xl font-semibold">{new Date(latestPrescription.date).toLocaleDateString()}</p>
+            </div>
           </div>
-          <div className="text-right">
-            <p className="text-cyan-50 mb-1">Prescription Date</p>
-            <p className="text-xl font-semibold">Feb 20, 2026</p>
-          </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
-      {/* Medicine Cards */}
+      {/* Main Prescription Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900">Your Medications</h3>
-          {searchQuery && (
-            <p className="text-xs text-slate-500">Matching "{searchQuery}"</p>
-          )}
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">Prescriptions & Clinical Notes</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Electronic prescription records from verified hospital visits</p>
+          </div>
+          <Button
+            onClick={() => navigate("/dashboard/book-appointment")}
+            className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs shadow-xs"
+          >
+            <Plus className="w-4 h-4 mr-1.5" />
+            Book Consultation
+          </Button>
         </div>
 
-        {filteredMedicines.length > 0 ? (
-          <div className="grid md:grid-cols-3 gap-4">
-            {filteredMedicines.map((medicine) => (
-              <Card key={medicine.id} className="p-6 border-0 shadow-sm hover:shadow-md transition-all">
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`w-12 h-12 bg-${medicine.color}-100 rounded-xl flex items-center justify-center`}>
-                    <Pill className={`w-6 h-6 text-${medicine.color}-600`} />
+        {loading ? (
+          <div className="py-12">
+            <LoadingSpinner />
+          </div>
+        ) : filteredPrescriptions.length > 0 ? (
+          <div className="grid md:grid-cols-2 gap-4">
+            {filteredPrescriptions.map((prescription) => (
+              <Card key={prescription.id} className="p-6 border border-slate-200/80 bg-white shadow-xs hover:border-teal-400/40 dark:bg-slate-900 dark:border-slate-800 rounded-2xl transition-all">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-teal-50 text-teal-700 border border-teal-200/60 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800/60">
+                    <Pill className="w-5 h-5" />
                   </div>
                   <Badge variant="outline" className="text-xs">
-                    {medicine.duration}
+                    {prescription.status}
                   </Badge>
                 </div>
-                <h4 className="font-semibold text-gray-900 mb-1">{medicine.name}</h4>
-                <p className="text-2xl font-bold text-gray-900 mb-3">{medicine.dosage}</p>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Clock className="w-4 h-4" />
-                    <span>{medicine.frequency}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Info className="w-4 h-4" />
-                    <span>{medicine.timing}</span>
-                  </div>
+                <h4 className="font-semibold text-slate-900 dark:text-slate-50 mb-0.5">{prescription.doctor}</h4>
+                <p className="text-xs text-teal-700 dark:text-teal-400 font-medium mb-3">{prescription.specialty}</p>
+
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 mb-3">
+                  <p className="font-semibold text-slate-900 dark:text-slate-100 mb-1">Diagnosis / Visit Reason:</p>
+                  <p>{prescription.reason}</p>
                 </div>
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <p className="text-xs text-gray-600">{medicine.instructions}</p>
+
+                <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1">
+                  <p className="font-semibold text-slate-900 dark:text-slate-100">Prescription Instructions:</p>
+                  <p className="leading-relaxed bg-amber-50/70 dark:bg-amber-950/30 p-2.5 rounded-lg border border-amber-200/50 dark:border-amber-900/40 text-amber-900 dark:text-amber-300">
+                    {prescription.notes}
+                  </p>
                 </div>
               </Card>
             ))}
           </div>
         ) : (
-          <Card className="p-8 text-center border border-slate-200/80 bg-white">
-            <p className="text-sm text-slate-500">No medications found matching "{searchQuery}".</p>
+          <Card className="p-12 text-center border border-slate-200/80 bg-white dark:bg-slate-900 dark:border-slate-800 rounded-2xl">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 border border-teal-200/50 dark:border-teal-900/50">
+              <Pill className="h-7 w-7" />
+            </div>
+            <h4 className="text-base font-semibold text-slate-900 dark:text-slate-100">No active prescriptions found</h4>
+            <p className="mt-1.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+              You do not have any electronic prescriptions registered on file. Consult with a specialist doctor to receive digital prescription charts and medication guidance.
+            </p>
+            <div className="mt-5">
+              <Button
+                onClick={() => navigate("/dashboard/book-appointment")}
+                className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs shadow-xs px-5 h-10"
+              >
+                Book a Consultation
+              </Button>
+            </div>
           </Card>
         )}
       </div>
 
-      {/* Dosage Schedule */}
-      <Card className="p-6 border-0 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-            <Clock className="w-5 h-5 text-blue-600" />
+      {/* Precautions & Tips */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card className="p-6 border border-slate-200/80 bg-white dark:bg-slate-900 dark:border-slate-800 rounded-2xl shadow-xs">
+          <div className="flex items-center gap-2 mb-4">
+            <ShieldAlert className="w-5 h-5 text-amber-600" />
+            <h3 className="font-semibold text-slate-900 dark:text-slate-50">General Drug Interactions to Avoid</h3>
           </div>
-          <h3 className="font-semibold text-gray-900">Daily Dosage Schedule</h3>
-        </div>
-        <div className="space-y-4">
-          {dosageSchedule.map((schedule, index) => (
-            <div key={index} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
-              <div className="text-center min-w-[80px]">
-                <p className="font-semibold text-gray-900">{schedule.time}</p>
-                <p className="text-xs text-gray-600">{schedule.meal}</p>
-              </div>
-              <div className="flex-1 space-y-2">
-                {schedule.medicines.map((med, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-cyan-600 rounded-full" />
-                    <p className="text-sm text-gray-900">{med}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Side Effects */}
-        <Card className="p-6 border-0 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-orange-600" />
-            </div>
-            <h3 className="font-semibold text-gray-900">Possible Side Effects</h3>
-          </div>
-          <div className="space-y-4">
-            {sideEffects.map((item, index) => (
-              <div key={index} className="pb-4 border-b border-gray-100 last:border-0 last:pb-0">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="font-medium text-gray-900">{item.medicine}</p>
-                  <Badge variant="outline" className="text-xs">
-                    {item.severity}
-                  </Badge>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {item.effects.map((effect, idx) => (
-                    <span key={idx} className="text-xs px-2 py-1 bg-orange-50 text-orange-700 rounded-lg">
-                      {effect}
-                    </span>
-                  ))}
-                </div>
-              </div>
+          <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-400">
+            {avoidList.map((item, idx) => (
+              <li key={idx} className="flex items-start gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+                <span>{item}</span>
+              </li>
             ))}
-          </div>
-          <p className="text-xs text-gray-600 mt-4 pt-4 border-t border-gray-100">
-            Contact your doctor immediately if you experience severe or persistent side effects.
-          </p>
+          </ul>
         </Card>
 
-        {/* What to Avoid */}
-        <Card className="p-6 border-0 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-              <ShieldAlert className="w-5 h-5 text-red-600" />
-            </div>
-            <h3 className="font-semibold text-gray-900">What to Avoid</h3>
+        <Card className="p-6 border border-slate-200/80 bg-white dark:bg-slate-900 dark:border-slate-800 rounded-2xl shadow-xs">
+          <div className="flex items-center gap-2 mb-4">
+            <Lightbulb className="w-5 h-5 text-teal-600" />
+            <h3 className="font-semibold text-slate-900 dark:text-slate-50">Medication Safety Tips</h3>
           </div>
-          <div className="space-y-3">
-            {avoidList.map((item, index) => (
-              <div key={index} className="flex items-start gap-3 p-3 bg-red-50 rounded-xl">
-                <div className="w-2 h-2 bg-red-600 rounded-full mt-1.5 flex-shrink-0" />
-                <p className="text-sm text-gray-900">{item}</p>
-              </div>
+          <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-400">
+            {preventionTips.map((tip, idx) => (
+              <li key={idx} className="flex items-start gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-teal-500 mt-1.5 shrink-0" />
+                <span>{tip}</span>
+              </li>
             ))}
-          </div>
+          </ul>
         </Card>
       </div>
-
-      {/* Prevention Tips */}
-      <Card className="p-6 border-0 shadow-sm bg-gradient-to-br from-green-50 to-teal-50">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center">
-            <Lightbulb className="w-5 h-5 text-white" />
-          </div>
-          <h3 className="font-semibold text-gray-900">Medication Tips & Best Practices</h3>
-        </div>
-        <div className="grid md:grid-cols-2 gap-3">
-          {preventionTips.map((tip, index) => (
-            <div key={index} className="flex items-start gap-3 p-3 bg-white rounded-xl">
-              <div className="w-6 h-6 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <span className="text-xs font-semibold text-green-700">{index + 1}</span>
-              </div>
-              <p className="text-sm text-gray-900">{tip}</p>
-            </div>
-          ))}
-        </div>
-      </Card>
     </div>
   );
 }

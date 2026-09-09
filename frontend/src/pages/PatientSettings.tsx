@@ -17,12 +17,14 @@ import {
   Smartphone,
   Trash2,
   User,
+  Palette,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "../components/common/Button";
 import { Card } from "../components/common/Card";
 import { Input } from "../components/common/Input";
 import { Label } from "../components/common/Label";
+import { ThemeModeSelector } from "../components/theme/ThemeModeSelector";
 import { Switch } from "../components/common/Switch";
 import {
   Dialog,
@@ -100,34 +102,29 @@ function SettingRowItem({
 export function PatientSettings() {
   const { user, updateUser } = useAuth();
 
-  // Profile Form State
   const [initialSplitFirst = "", initialSplitLast = ""] = (user?.name || "").split(" ");
-  const [firstName, setFirstName] = useState(initialSplitFirst || "Rohan");
-  const [lastName, setLastName] = useState(initialSplitLast || "Verma");
-  const [email, setEmail] = useState(user?.email || "rohan.verma@example.com");
-  const [phone, setPhone] = useState(user?.phone || "+91 98765 42001");
-  const [address, setAddress] = useState(user?.address || "Indiranagar, Bengaluru, Karnataka");
-  const [age, setAge] = useState<string>("32");
-  const [gender, setGender] = useState<string>("Male");
-  const [bloodGroup, setBloodGroup] = useState<string>("O+");
-
+  const [firstName, setFirstName] = useState(initialSplitFirst || "");
+  const [lastName, setLastName] = useState(initialSplitLast || "");
+  const [email, setEmail] = useState(user?.email || "");
+  const [phone, setPhone] = useState(user?.phone || "");
+  const [address, setAddress] = useState(user?.address || "");
+  const [age, setAge] = useState<string>(user?.age ? String(user.age) : "");
+  const [gender, setGender] = useState<string>(user?.gender || "");
+  const [bloodGroup, setBloodGroup] = useState<string>(user?.bloodGroup || "");
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
-  // Security Form State
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
-  // Notification Toggles
   const [queueAlerts, setQueueAlerts] = useState(true);
   const [doctorDelayAlerts, setDoctorDelayAlerts] = useState(true);
   const [appointmentReminders, setAppointmentReminders] = useState(true);
   const [labResultAlerts, setLabResultAlerts] = useState(true);
   const [refillAlerts, setRefillAlerts] = useState(false);
 
-  // Security & Privacy Toggles
   const [twoFactorAuth, setTwoFactorAuth] = useState(false);
   const [loginAlerts, setLoginAlerts] = useState(true);
   const [biometricLogin, setBiometricLogin] = useState(true);
@@ -136,7 +133,6 @@ export function PatientSettings() {
   const [anonymizedResearch, setAnonymizedResearch] = useState(false);
   const [auditLogging, setAuditLogging] = useState(true);
 
-  // Payment Methods State
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodItem[]>([]);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
@@ -145,7 +141,6 @@ export function PatientSettings() {
   const [settingDefaultId, setSettingDefaultId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // New Card Form State
   const [cardHolder, setCardHolder] = useState("");
   const [cardNumber, setCardNumber] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
@@ -153,7 +148,6 @@ export function PatientSettings() {
   const [cardNickname, setCardNickname] = useState("");
   const [isDefaultCard, setIsDefaultCard] = useState(false);
 
-  // New UPI Form State
   const [upiId, setUpiId] = useState("");
   const [upiNickname, setUpiNickname] = useState("");
   const [isDefaultUpi, setIsDefaultUpi] = useState(false);
@@ -400,10 +394,10 @@ export function PatientSettings() {
   const handleDiscardProfile = () => {
     if (user) {
       const [splitFirst = "", splitLast = ""] = (user.name || "").split(" ");
-      setFirstName(splitFirst || "Rohan");
-      setLastName(splitLast || "Verma");
-      setPhone(user.phone || "+91 98765 42001");
-      setAddress(user.address || "Indiranagar, Bengaluru, Karnataka");
+      setFirstName(splitFirst);
+      setLastName(splitLast);
+      setPhone(user.phone || "");
+      setAddress(user.address || "");
     }
     toast.info("Changes reverted.");
   };
@@ -1109,6 +1103,25 @@ export function PatientSettings() {
                 toast.success(`Audit logging ${v ? "enabled" : "disabled"}.`);
               }}
             />
+          </div>
+        </Card>
+      ),
+    },
+    {
+      id: "appearance",
+      label: "Appearance & Theme",
+      description: "Interface display mode, dark theme, and visual preferences.",
+      icon: Palette,
+      content: (
+        <Card className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-slate-950">
+          <div className="mb-6 border-b border-slate-100 pb-4 dark:border-slate-800">
+            <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Display Theme & Mode</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Customize your visual experience across MEDIrxCARE. Preferences persist in your local browser.
+            </p>
+          </div>
+          <div className="max-w-md">
+            <ThemeModeSelector label="Portal Theme" />
           </div>
         </Card>
       ),

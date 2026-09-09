@@ -1,5 +1,5 @@
 function resolveBaseUrl() {
-  const configuredUrl = import.meta.env.VITE_API_URL?.trim();
+  const configuredUrl = typeof import.meta !== "undefined" && import.meta.env ? import.meta.env.VITE_API_URL?.trim() : undefined;
 
   if (configuredUrl) {
     return configuredUrl.replace(/\/$/, "");

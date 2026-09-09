@@ -2,7 +2,9 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import { authRequired } from "../middleware/auth.js";
 import { User } from "../models/User.js";
+import { Appointment } from "../models/Appointment.js";
 import { sanitizeUser } from "../utils/helpers.js";
+import { handleGetReports } from "./reports.routes.js";
 
 const router = express.Router();
 
@@ -129,43 +131,48 @@ router.get("/payment-methods", authRequired, async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found." });
 
-    if (!user.paymentMethods || user.paymentMethods.length === 0) {
-      user.paymentMethods = [
-        {
-          type: "card",
-          cardHolder: user.name || "Rohan Verma",
-          cardNumber: "•••• •••• •••• 4242",
-          brand: "visa",
-          expiry: "08/29",
-          nickname: "HDFC Regalia Credit Card",
-          isDefault: true,
-        },
-        {
-          type: "card",
-          cardHolder: user.name || "Rohan Verma",
-          cardNumber: "•••• •••• •••• 8819",
-          brand: "mastercard",
-          expiry: "11/27",
-          nickname: "ICICI Bank Debit Card",
-          isDefault: false,
-        },
-        {
-          type: "upi",
-          upiId: "rohan@okhdfcbank",
-          nickname: "Instant UPI AutoPay",
-          isDefault: false,
-        },
-      ];
-      await user.save();
-    }
-
     return res.json({
       success: true,
-      paymentMethods: user.paymentMethods,
+      paymentMethods: user.paymentMethods || [],
     });
   } catch (error) {
     console.error("Failed to fetch payment methods:", error);
     return res.status(500).json({ message: "Failed to fetch payment methods." });
+  }
+});
+
+// GET /api/user/reports
+router.get("/reports", authRequired, handleGetReports);
+
+// GET /api/user/prescriptions
+router.get("/prescriptions", authRequired, async (req, res) => {
+  try {
+    const appointments = await Appointment.find({
+      patient: req.user._id,
+      status: { $in: ["confirmed", "completed", "ongoing"] },
+    })
+      .populate("doctor")
+      .sort({ dateTime: -1 });
+
+    const prescriptions = appointments
+      .filter((appt) => appt.notes && appt.notes.trim())
+      .map((appt) => ({
+        id: appt._id.toString(),
+        doctor: appt.doctor?.name || "Consultant Physician",
+        specialty: appt.doctor?.doctorProfile?.specialization || "General Medicine",
+        date: appt.dateTime.toISOString().split("T")[0],
+        reason: appt.reason,
+        notes: appt.notes,
+        status: appt.status,
+      }));
+
+    return res.json({
+      success: true,
+      prescriptions,
+    });
+  } catch (error) {
+    console.error("Failed to fetch user prescriptions:", error);
+    return res.status(500).json({ message: "Failed to fetch prescriptions." });
   }
 });
 

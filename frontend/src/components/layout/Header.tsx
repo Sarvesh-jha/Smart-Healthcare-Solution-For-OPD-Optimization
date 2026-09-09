@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router";
 import { Input } from "../common/Input";
 import { useAuth } from "../../context/AuthContext";
 import { useSearch } from "../../context/SearchContext";
-import { EmergencyAlertButton } from "../dashboard/EmergencyAlertButton";
+import { SOSEmergencyButton } from "../dashboard/SOSEmergencyButton";
 import { PatientNotifications } from "../notifications/PatientNotifications";
 import { DoctorNotifications } from "../notifications/DoctorNotifications";
 import { AdminNotifications } from "../notifications/AdminNotifications";
@@ -78,30 +78,30 @@ export function Header({ userRole }: HeaderProps) {
   };
 
   return (
-    <header className="border-b border-slate-200/80 bg-white/95 px-6 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950">
+    <header className="border-b border-slate-200/80 bg-white/95 px-6 py-3 backdrop-blur dark:border-slate-800/80 dark:bg-[#0B0F17]/80 dark:backdrop-blur-md">
       <div className="flex items-center justify-between gap-6 min-h-[36px]">
         <div className="flex-1 max-w-md">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-400" />
             <Input
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleSearchKeyDown}
               placeholder={getSearchPlaceholder(location.pathname)}
-              className="h-9 border-slate-200 bg-slate-50/70 pl-9 pr-10 text-xs focus:bg-white focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 rounded-lg dark:border-slate-800 dark:bg-slate-900 transition-all"
+              className="h-9 border-slate-200 bg-slate-50/70 pl-9 pr-10 text-xs text-slate-900 focus:bg-white focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 rounded-lg dark:border-slate-700/70 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-900 dark:focus:border-teal-400 dark:focus:ring-teal-500/30 transition-all"
             />
             {searchQuery ? (
               <button
                 type="button"
                 onClick={clearSearch}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-200"
                 aria-label="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             ) : (
-              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-slate-400 shadow-2xs dark:border-slate-700 dark:bg-slate-800 pointer-events-none">
+              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-slate-400 shadow-2xs dark:border-slate-700/70 dark:bg-slate-800 dark:text-slate-400 pointer-events-none">
                 ⌘K
               </span>
             )}
@@ -109,7 +109,7 @@ export function Header({ userRole }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          {role === "patient" ? <EmergencyAlertButton /> : null}
+          {role === "patient" ? <SOSEmergencyButton /> : null}
           {renderNotifications()}
           {renderProfileMenu()}
         </div>

@@ -93,15 +93,15 @@ export function AdminSettings() {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="organizationName">Organization Name</Label>
-              <Input id="organizationName" defaultValue="MEDIrxCARE Hospitals" className="h-11 rounded-xl bg-gray-50" />
+              <Input id="organizationName" defaultValue={user?.adminProfile?.organizationName || "MEDIrxCARE Healthcare"} className="h-11 rounded-xl bg-gray-50" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="adminName">Administrator</Label>
-              <Input id="adminName" defaultValue={user?.name || "Aditi Sharma"} className="h-11 rounded-xl bg-gray-50" />
+              <Input id="adminName" defaultValue={user?.name || ""} placeholder="Administrator Name" className="h-11 rounded-xl bg-gray-50" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="adminEmail">Admin Email</Label>
-              <Input id="adminEmail" defaultValue={user?.email || "admin@medirxcare.in"} className="h-11 rounded-xl bg-gray-50" />
+              <Input id="adminEmail" defaultValue={user?.email || ""} placeholder="admin@medirxcare.in" className="h-11 rounded-xl bg-gray-50" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="language">Language</Label>

@@ -1,10 +1,11 @@
+import { useMemo, useState } from "react";
 import { Calendar, Clock, Video, Users, Activity, CheckCircle, FileText, Timer, BarChart3, ChevronRight, Stethoscope, ArrowRight } from "lucide-react";
 import { Card } from "../components/common/Card";
 import { Button } from "../components/common/Button";
 import { Badge } from "../components/common/Badge";
 import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
-import { useAppointments } from "../hooks/useAppointments";
+import { useAppointments, UseAppointmentsOptions } from "../hooks/useAppointments";
 import { useDashboardStats } from "../hooks/useDashboardStats";
 import { useQueue } from "../hooks/useQueue";
 import { StatCard } from "../components/dashboard/StatCard";
@@ -13,14 +14,40 @@ import { queueService } from "../services/QueueService";
 export function DoctorDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { appointments, loading: appointmentsLoading } = useAppointments('doctor');
-  const { stats, loading: statsLoading } = useDashboardStats('doctor');
-  const { queue, loading: queueLoading, refresh: refreshQueue } = useQueue();
+
+  const [filterTab, setFilterTab] = useState<"today" | "tomorrow" | "upcoming">("today");
+
+  const tomorrowDateObj = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d;
+  }, []);
+  const tomorrowDateISO = useMemo(() => tomorrowDateObj.toISOString().split("T")[0], [tomorrowDateObj]);
+  const tomorrowDateLabel = useMemo(() => {
+    return new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short" }).format(tomorrowDateObj);
+  }, [tomorrowDateObj]);
+
+  const appointmentOptions = useMemo<UseAppointmentsOptions>(() => {
+    if (filterTab === "tomorrow") {
+      return { date: tomorrowDateISO, view: "tomorrow" };
+    }
+    if (filterTab === "upcoming") {
+      return { view: "upcoming" };
+    }
+    return { view: "today" };
+  }, [filterTab, tomorrowDateISO]);
+
+  const { appointments, loading: appointmentsLoading, refresh: refreshAppointments } = useAppointments("doctor", appointmentOptions);
+  const { stats, loading: statsLoading, refresh: refreshStats } = useDashboardStats("doctor");
+  const queueDate = filterTab === "tomorrow" ? tomorrowDateISO : undefined;
+  const { queue, loading: queueLoading, refresh: refreshQueue } = useQueue({ date: queueDate });
 
   const handleAdvanceQueue = async () => {
     try {
       await queueService.nextPatient();
       await refreshQueue();
+      await refreshAppointments();
+      await refreshStats();
     } catch (error) {
       console.error("Failed to advance queue:", error);
     }
@@ -32,20 +59,37 @@ export function DoctorDashboard() {
       <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-xs dark:bg-slate-950 dark:border-slate-800">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                Welcome, {user?.name || "Dr. Aarav Mehta"}
+              </h1>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                On-Duty
               </span>
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">On-Duty Clinician</span>
-              <span className="text-xs text-slate-300 dark:text-slate-700">•</span>
-              <span className="text-xs text-slate-500">OPD Consultation Wing</span>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-              Welcome, {user?.name || "Dr. Aarav Mehta"}
-            </h1>
-            <p className="text-xs text-slate-500 mt-1">
-              You have <strong className="text-slate-900 dark:text-slate-100 font-semibold">{stats?.todaysAppointments || appointments.length} appointments</strong> scheduled for today's roster.
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              {filterTab === "today" && (
+                <>
+                  You have <strong className="text-slate-900 dark:text-slate-100 font-semibold">{stats?.todaysAppointments || appointments.length} appointments</strong> scheduled for today's roster.
+                  {(stats?.totalUpcoming || 0) > (stats?.todaysAppointments || 0) && (
+                    <span className="ml-1 text-teal-600 dark:text-teal-400 font-medium">
+                      ({(stats?.totalUpcoming || 0) - (stats?.todaysAppointments || 0)} upcoming on future dates)
+                    </span>
+                  )}
+                </>
+              )}
+              {filterTab === "tomorrow" && (
+                <>
+                  Viewing roster for <strong className="text-slate-900 dark:text-slate-100 font-semibold">Tomorrow ({tomorrowDateLabel})</strong> with{" "}
+                  <strong className="text-teal-600 dark:text-teal-400 font-semibold">{appointments.length} scheduled appointment{appointments.length === 1 ? "" : "s"}</strong>.
+                </>
+              )}
+              {filterTab === "upcoming" && (
+                <>
+                  Viewing <strong className="text-slate-900 dark:text-slate-100 font-semibold">All Upcoming Appointments</strong> ({appointments.length} total scheduled).
+                </>
+              )}
             </p>
           </div>
 
@@ -65,20 +109,85 @@ export function DoctorDashboard() {
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Left Column - Appointments & Queue Stream */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Today's Queue Stream */}
+          {/* Patient Queue Stream Card */}
           <Card className="p-6 bg-white border border-slate-200/80 shadow-xs dark:bg-slate-950 dark:border-slate-800">
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-50 text-teal-700 border border-teal-200/60 dark:bg-teal-950/40 dark:text-teal-300">
                   <Calendar className="h-4.5 w-4.5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50">Patient Queue Stream</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{appointments.length} patients scheduled today</p>
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50">
+                    {filterTab === "today"
+                      ? "Patient Queue Stream"
+                      : filterTab === "tomorrow"
+                      ? `Tomorrow's Roster (${tomorrowDateLabel})`
+                      : "Upcoming Appointments Stream"}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {appointments.length} {appointments.length === 1 ? "patient" : "patients"} {filterTab === "today" ? "scheduled today" : filterTab === "tomorrow" ? `booked for ${tomorrowDateLabel}` : "in upcoming schedule"}
+                  </p>
                 </div>
               </div>
-              <Badge variant="secondary" className="text-xs">Live Schedule</Badge>
+
+              {/* Date Filter Tabs */}
+              <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setFilterTab("today")}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                    filterTab === "today"
+                      ? "bg-white text-slate-900 shadow-xs dark:bg-slate-800 dark:text-white"
+                      : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                  }`}
+                >
+                  Today {stats?.todaysAppointments !== undefined ? `(${stats.todaysAppointments})` : ""}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterTab("tomorrow")}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                    filterTab === "tomorrow"
+                      ? "bg-white text-slate-900 shadow-xs dark:bg-slate-800 dark:text-white"
+                      : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                  }`}
+                >
+                  Tomorrow ({tomorrowDateLabel})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterTab("upcoming")}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                    filterTab === "upcoming"
+                      ? "bg-white text-slate-900 shadow-xs dark:bg-slate-800 dark:text-white"
+                      : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                  }`}
+                >
+                  All Upcoming
+                </button>
+              </div>
             </div>
+
+            {/* If Today is empty but upcoming appointments exist, show helpful switcher banner */}
+            {filterTab === "today" && !appointmentsLoading && appointments.length === 0 && (stats?.totalUpcoming || 0) > 0 && (
+              <div className="mb-4 p-3.5 rounded-xl border border-teal-200/80 bg-teal-50/50 dark:bg-teal-950/20 dark:border-teal-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+                  <p className="text-xs text-teal-900 dark:text-teal-200">
+                    No patients scheduled today, but you have{" "}
+                    <strong className="font-semibold">{stats?.totalUpcoming} appointment{(stats?.totalUpcoming || 0) > 1 ? "s" : ""}</strong> booked for upcoming dates.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setFilterTab("tomorrow")}
+                  className="h-7 text-xs border-teal-300 text-teal-700 hover:bg-teal-100/50 dark:border-teal-700 dark:text-teal-300 shrink-0 self-start sm:self-auto"
+                >
+                  View Tomorrow ({tomorrowDateLabel})
+                </Button>
+              </div>
+            )}
 
             <div className="space-y-2.5">
               {appointmentsLoading ? (
@@ -117,6 +226,11 @@ export function DoctorDashboard() {
                             >
                               {appointment.status}
                             </Badge>
+                            {appointment.mode && (
+                              <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                                {appointment.mode === "Video" ? "Video" : "In-Person"}
+                              </span>
+                            )}
                           </div>
                           <p className="text-xs text-slate-500 truncate mt-0.5">{appointment.reason || "General Consultation"}</p>
                         </div>
@@ -126,10 +240,14 @@ export function DoctorDashboard() {
                         <div className="text-right">
                           <div className="flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
                             <Clock className="w-3.5 h-3.5 text-slate-400" />
-                            {appointment.time}
+                            {appointment.timeSlot || appointment.time}
                           </div>
-                          <div className="text-[11px] text-slate-400 mt-0.5">
-                            {appointment.mode === "Video" ? "Video Visit" : "In-Person OPD"}
+                          <div className="text-[11px] text-slate-400 mt-0.5 flex items-center justify-end gap-1">
+                            {appointment.date && (
+                              <span className="font-medium text-teal-600 dark:text-teal-400">{appointment.date}</span>
+                            )}
+                            <span>•</span>
+                            <span>{appointment.mode === "Video" ? "Video Visit" : "In-Person OPD"}</span>
                           </div>
                         </div>
                         
@@ -169,7 +287,11 @@ export function DoctorDashboard() {
                   );
                 })
               ) : (
-                <p className="py-8 text-center text-xs text-slate-400">No scheduled patients in the queue.</p>
+                <div className="py-10 text-center">
+                  <p className="text-xs text-slate-400">
+                    No scheduled patients {filterTab === "today" ? "in today's queue" : filterTab === "tomorrow" ? `for ${tomorrowDateLabel}` : "in upcoming schedule"}.
+                  </p>
+                </div>
               )}
             </div>
           </Card>

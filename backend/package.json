@@ -8,20 +8,28 @@
     "start": "node src/server.js",
     "build": "node -e \"console.log('Backend is plain Node.js and does not require a build step.')\"",
     "seed": "node src/scripts/seed.js",
+    "db:seed": "node src/scripts/seed.js",
+    "db:seed:demo": "node src/scripts/seed.js",
+    "db:seed:baseline": "node src/scripts/seed-baseline.js",
+    "db:seed:prod": "node src/scripts/seed-baseline.js",
     "test:functions": "NODE_ENV=test node --test --test-reporter=spec tests/functions.unit.test.js",
     "test:api": "NODE_ENV=test node --test --test-reporter=spec tests/api-endpoints.test.js",
     "test:integration": "NODE_ENV=test node --test --test-reporter=spec tests/integration.test.js",
     "test": "NODE_ENV=test node --test --test-reporter=spec tests/*.test.js"
   },
   "dependencies": {
+    "@google/genai": "^2.21.0",
     "bcryptjs": "2.4.3",
     "cors": "2.8.5",
     "dotenv": "16.4.7",
     "express": "4.21.2",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "9.0.2",
     "mongoose": "8.12.1",
     "morgan": "1.10.0",
     "openai": "5.10.2",
+    "socket.io": "^4.8.3",
     "zod": "3.24.2"
   }
 }

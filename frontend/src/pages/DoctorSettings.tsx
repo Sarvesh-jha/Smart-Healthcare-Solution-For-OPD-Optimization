@@ -80,22 +80,22 @@ export function DoctorSettings() {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name</Label>
-                <Input id="fullName" defaultValue={user?.name || "Dr. Aarav Mehta"} className="h-11 rounded-xl bg-gray-50" />
+                <Input id="fullName" defaultValue={user?.name || ""} placeholder="Full Name" className="h-11 rounded-xl bg-gray-50" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="specialty">Specialty</Label>
-                <Input id="specialty" defaultValue="Cardiologist" className="h-11 rounded-xl bg-gray-50" />
+                <Input id="specialty" defaultValue={user?.doctorProfile?.specialization || ""} placeholder="Clinical Specialty" className="h-11 rounded-xl bg-gray-50" />
               </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="license">License Number</Label>
-                <Input id="license" defaultValue="MCI-DL-7829" className="h-11 rounded-xl bg-gray-50" />
+                <Input id="license" defaultValue={user?.doctorProfile?.licenseNumber || ""} placeholder="Medical Council License" className="h-11 rounded-xl bg-gray-50" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="experience">Years of Experience</Label>
-                <Input id="experience" defaultValue="12" className="h-11 rounded-xl bg-gray-50" />
+                <Input id="experience" defaultValue={user?.doctorProfile?.experienceYears ? String(user.doctorProfile.experienceYears) : ""} placeholder="Years of Practice" className="h-11 rounded-xl bg-gray-50" />
               </div>
             </div>
 
@@ -106,7 +106,8 @@ export function DoctorSettings() {
                 <Input
                   id="email"
                   type="email"
-                  defaultValue={user?.email || "aarav.mehta@medirxcare.in"}
+                  defaultValue={user?.email || ""}
+                  placeholder="doctor@medirxcare.in"
                   className="h-11 rounded-xl bg-gray-50 pl-11"
                 />
               </div>

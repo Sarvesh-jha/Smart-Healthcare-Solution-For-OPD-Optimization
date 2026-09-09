@@ -32,10 +32,10 @@ export function DoctorProfileMenu() {
       }
       return parts[0] ? parts[0][0].toUpperCase() : "D";
     }
-    return "AM";
+    return "DR";
   };
 
-  const displayName = user?.name || "Dr. Aarav Mehta";
+  const displayName = user?.name || "Attending Doctor";
 
   return (
     <DropdownMenu>
@@ -66,9 +66,9 @@ export function DoctorProfileMenu() {
               {getInitials()}
             </div>
             <div className="text-white">
-              <h3 className="text-base font-semibold leading-tight">{user?.name || "Dr. Aarav Mehta"}</h3>
+              <h3 className="text-base font-semibold leading-tight">{displayName}</h3>
               <p className="mt-0.5 text-xs text-cyan-100">Doctor Portal</p>
-              <p className="mt-0.5 text-xs text-cyan-100">{user?.email}</p>
+              <p className="mt-0.5 text-xs text-cyan-100">{user?.email || "doctor@medirxcare.in"}</p>
             </div>
           </div>
         </div>

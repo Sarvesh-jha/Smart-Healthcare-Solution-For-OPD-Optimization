@@ -44,7 +44,7 @@ export function PatientDashboardLayout() {
 
   if (isConsultationRoute) {
     return (
-      <div className="h-screen overflow-hidden bg-slate-950">
+      <div className="h-screen overflow-hidden bg-slate-950 dark:bg-[#0B0F17]">
         <main className="h-full overflow-hidden">
           <Outlet />
         </main>
@@ -53,7 +53,7 @@ export function PatientDashboardLayout() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-slate-950">
+    <div className="flex h-screen overflow-hidden bg-slate-50/80 dark:bg-[#0B0F17]">
       <Sidebar 
         navigation={patientNavigation} 
         onLogout={handleLogout} 
