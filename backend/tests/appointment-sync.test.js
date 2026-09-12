@@ -29,8 +29,12 @@ test("appointment data synchronization between patient booking and doctor dashbo
   const drAarav = doctorsRes.json.find((doc) => doc.email === "aarav.mehta@medirxcare.in");
   assert.ok(drAarav, "Dr. Aarav Mehta must exist in catalogue");
 
-  // 3. Book In-Person Appointment for 2026-09-08 at 02:00 PM
-  const bookingDate = "2026-09-08";
+  // 3. Book In-Person Appointment for Today at 02:00 PM
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const bookingDate = `${year}-${month}-${day}`;
   const bookingSlot = "02:00 PM";
   const uniqueReason = `Cardiac Consultation Test ${Date.now()}`;
 
@@ -58,7 +62,7 @@ test("appointment data synchronization between patient booking and doctor dashbo
   assert.equal(createdAppt.patientId, patientId, "Patient ID must match Rohan Verma");
   assert.equal(createdAppt.mode, "In-Person", "Mode must be In-Person");
   assert.equal(createdAppt.timeSlot, "2:00 PM", "Time slot must format to 2:00 PM");
-  assert.equal(createdAppt.dateISO, "2026-09-08", "Date ISO must match 2026-09-08");
+  assert.equal(createdAppt.dateISO, bookingDate, `Date ISO must match ${bookingDate}`);
 
   // 4. Doctor Login (Dr. Aarav Mehta)
   const doctorLogin = await jsonRequest(baseUrl, "/auth/login", {
