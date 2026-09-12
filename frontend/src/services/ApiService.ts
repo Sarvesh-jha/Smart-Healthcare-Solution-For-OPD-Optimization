@@ -9,8 +9,12 @@ function resolveBaseUrl() {
   }
 
   if (typeof window !== "undefined") {
-    const { protocol, hostname } = window.location;
-    return `${protocol}//${hostname}:5001/api`;
+    const { hostname } = window.location;
+    const isLocal = hostname === "localhost" || hostname === "127.0.0.1";
+    if (isLocal) {
+      return "http://localhost:5001/api";
+    }
+    return "/api";
   }
 
   return "http://localhost:5001/api";

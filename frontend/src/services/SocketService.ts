@@ -7,8 +7,12 @@ function resolveSocketUrl() {
   }
 
   if (typeof window !== "undefined") {
-    const { protocol, hostname } = window.location;
-    return `${protocol}//${hostname}:5001`;
+    const { hostname } = window.location;
+    const isLocal = hostname === "localhost" || hostname === "127.0.0.1";
+    if (isLocal) {
+      return "http://localhost:5001";
+    }
+    return window.location.origin;
   }
 
   return "http://localhost:5001";
