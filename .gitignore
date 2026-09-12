@@ -2,7 +2,9 @@ node_modules
 frontend/node_modules
 backend/node_modules
 frontend/dist
-backend/.env
-frontend/.env
+backend/.env*
+frontend/.env*
+.vercel
 .DS_Store
 npm-debug.log*
+
