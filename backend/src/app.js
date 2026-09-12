@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
+import mongoose from "mongoose";
 import { rateLimit } from "express-rate-limit";
 import morgan from "morgan";
 import { env } from "./config/env.js";
@@ -21,7 +22,22 @@ import reportsRoutes from "./routes/reports.routes.js";
 
 export function createApp() {
   const app = express();
-  const allowedOrigins = env.clientOrigin.split(",").map((origin) => origin.trim());
+  const configuredOrigins = (env.clientOrigin || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  const defaultOrigins = [
+    "https://medirxcare.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:4173",
+    "http://localhost:4174",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:4173",
+    "http://127.0.0.1:4174",
+  ];
+
+  const allowedOrigins = Array.from(new Set([...defaultOrigins, ...configuredOrigins]));
 
   app.use(helmet());
 
@@ -74,12 +90,31 @@ export function createApp() {
     res.status(204).end();
   });
 
-  app.get("/api/health", (_req, res) => {
-    res.json({
+  const getHealthPayload = () => {
+    const dbStatusMap = {
+      0: "disconnected",
+      1: "connected",
+      2: "connecting",
+      3: "disconnecting",
+    };
+    const dbStatus = dbStatusMap[mongoose.connection.readyState] || "disconnected";
+
+    return {
       status: "ok",
       service: "medirxcare-backend",
+      uptime: Math.floor(process.uptime()),
+      environment: env.nodeEnv,
+      database: dbStatus,
       timestamp: new Date().toISOString(),
-    });
+    };
+  };
+
+  app.get("/health", (_req, res) => {
+    res.json(getHealthPayload());
+  });
+
+  app.get("/api/health", (_req, res) => {
+    res.json(getHealthPayload());
   });
 
   app.use("/api/auth", authRoutes);

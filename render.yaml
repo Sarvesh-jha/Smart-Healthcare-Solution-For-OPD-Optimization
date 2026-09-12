@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: medirxcare-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node src/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5001
+      - key: CLIENT_ORIGIN
+        value: https://medirxcare.vercel.app
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false

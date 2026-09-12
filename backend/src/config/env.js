@@ -25,7 +25,7 @@ export const env = {
   clientOrigin:
     process.env.CORS_ORIGIN ||
     process.env.CLIENT_ORIGIN ||
-    "http://localhost:4173,http://127.0.0.1:4173,http://localhost:5173,http://127.0.0.1:5173",
+    "https://medirxcare.vercel.app,http://localhost:5173,http://localhost:4173,http://localhost:4174,http://127.0.0.1:5173,http://127.0.0.1:4173,http://127.0.0.1:4174",
   openAiApiKey: process.env.OPENAI_API_KEY || "",
   openAiModel: process.env.OPENAI_MODEL || "gpt-5-mini",
   geminiApiKey: process.env.GEMINI_API_KEY || process.env.AI_API_KEY || "",
